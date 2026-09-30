@@ -71,14 +71,6 @@
   #capgrid .cap:first-child{border-left:0;padding-left:0}
   #capgrid .cv{font-size:20px;font-weight:600;margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-.01em}
   #flabel{margin-top:22px}
-  #flist{margin-top:8px;background:rgba(0,0,0,.24);border:1px solid var(--line-soft);border-radius:12px;padding:2px 14px}
-  .frow2{display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid var(--line-soft);font-size:12px;cursor:pointer}
-  .frow2:last-child{border-bottom:0}
-  .frow2 .ft{flex:none;width:92px;display:inline-flex;justify-content:center;padding:3px 0;border-radius:6px;font-family:var(--mono);font-size:9px;font-weight:600;letter-spacing:.12em}
-  .frow2 .ft.dep{background:var(--gold-dim);color:var(--gold)}
-  .frow2 .ft.wit{background:var(--accent-dim);color:var(--accent)}
-  .frow2 .fd{color:var(--ink-3);font-size:12px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .frow2 .fa{margin-left:auto;font-weight:600;font-size:13.5px;flex:none}
 
   /* ---- open position ---- */
   #openCard{border-color:rgba(233,197,107,.22)}
@@ -138,6 +130,7 @@
   .tsym.wit{color:var(--blu)} .tsym.rei{color:#F59E4B} .tsym.own{color:var(--ink-2)}
   .tpnl.fwit{color:var(--blu)} .tpnl.frei{color:#F59E4B}
   #cWit{color:var(--blu)}
+  #cRei.rei{color:#F59E4B}
   .trow2 .tmain{min-width:0}
   .trow2 .tl1{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline}
   .trow2 .tsym{font-family:var(--mono);font-weight:600;font-size:12.5px}
@@ -252,7 +245,7 @@
   #heroV .vhead{width:100%;justify-content:center;gap:14px}
   #vaddr{margin-top:12px;width:100%}
   #vaddr code{text-align:center}
-  #flist,#rchecks{background:rgba(0,0,0,.30);border-color:rgba(255,255,255,.06);border-radius:14px}
+  #rchecks{background:rgba(0,0,0,.30);border-color:rgba(255,255,255,.06);border-radius:14px}
   #openCard{border-color:rgba(61,224,168,.18)}
   #sumBal.win{text-shadow:0 0 32px rgba(61,224,168,.35)}
   #fab{border-radius:999px}
@@ -269,7 +262,7 @@
   #vaultCard2 .vhead{display:flex;justify-content:center;gap:16px;width:100%}
   #tiles{background:none;border:0;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none;padding:0;gap:14px}
   .tile{background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.08)!important;border-radius:16px;padding:15px 17px;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
-  @media (max-width:640px){
+  @media (max-width:979px){
     #heroWrap{grid-template-columns:1fr}
     #tiles{gap:10px}
     .tile{padding:11px 12px}
@@ -327,6 +320,9 @@
   .dhead:hover{background:rgba(255,255,255,.05)}
   .dhead .num{justify-self:end;font-weight:600;font-size:11px;letter-spacing:0}
   .dchev{justify-self:center;font-size:9px;letter-spacing:.08em;color:var(--ink-4)}
+  #eqTitle{white-space:nowrap}
+  .chart-card h2{flex-wrap:wrap}
+  @media (max-width:560px){.dhead{grid-template-columns:auto auto 1fr}.dhead .num{justify-self:end}}
   .dhead:hover .dchev{color:var(--ink-2)}
   .dbody{padding:0 2px}
   .trow2{border-bottom:1px solid rgba(255,255,255,.05);border-radius:0;padding:10px 14px}
@@ -388,7 +384,7 @@
   #heroWrap>*{min-width:0}
   #vaddr{min-width:0;max-width:100%}
   #vaddr code{white-space:normal;overflow-wrap:anywhere;word-break:break-all;max-width:100%}
-  @media (max-width:640px){
+  @media (max-width:979px){
     #heroWrap{display:block}
     #vaultCard2{margin-top:14px}
     #sumCard,#vaultCard2{max-width:100%;overflow:hidden}
@@ -478,8 +474,8 @@
     <div id="tiles">
       <div class="tile"><div class="lbl">Win rate</div><div class="v num" id="tWr">&ndash;</div></div>
       <div class="tile"><div class="lbl">Avg R:R</div><div class="v num" id="tPf">&ndash;</div></div>
-      <div class="tile"><div class="lbl">Avg R</div><div class="v num" id="tR">&ndash;</div></div>
-      <div class="tile"><div class="lbl">Last withdraw</div><div class="v num" id="tBest">&ndash;</div></div>
+      <div class="tile"><div class="lbl">Avg per lot</div><div class="v num" id="tR">&ndash;</div></div>
+      <div class="tile"><div class="lbl">Last withdrawn</div><div class="v num" id="tBest">&ndash;</div></div>
       <div class="tile"><div class="lbl">Green days</div><div class="v num" id="tGreen">&ndash;</div></div>
       <div class="tile"><div class="lbl">Trades</div><div class="v num" id="tTrades">0</div></div>
     </div>
@@ -556,7 +552,7 @@
   <h2>Setup</h2>
   <div class="fld"><label for="sBal">Balance before tracking $ (optional)</label><input id="sBal" type="number" step="any" inputmode="decimal" placeholder="0"></div>
   <div class="fld"><label for="sGoal">Weekly goal (R)</label><input id="sGoal" type="number" step="any" inputmode="decimal" placeholder="10"></div>
-  <div class="fld"><label for="sBankAt">Bank when balance hits $</label><input id="sBankAt" type="number" step="any" inputmode="decimal" placeholder="2500"></div>
+  <div class="fld"><label for="sBankAt">Withdraw when balance hits $</label><input id="sBankAt" type="number" step="any" inputmode="decimal" placeholder="2500"></div>
   <div class="fld"><label for="sRiskLot">Risk per lot $</label><input id="sRiskLot" type="number" step="any" inputmode="decimal" placeholder="1000"></div>
   <button class="btn primary" id="sSave" type="button">SAVE</button>
 </div>
@@ -575,7 +571,7 @@
     <div class="fld"><label for="wAmt">Amount $</label><input id="wAmt" type="number" step="any" inputmode="decimal" placeholder="500"></div>
     <div class="fld"><label for="wWhen">When</label><input id="wWhen" type="datetime-local"></div>
   </div>
-  <div class="fld" id="wSrcWrap"><label class="chk"><input type="checkbox" id="wSrc" checked> From my profit (reinvest)</label></div>
+  <div class="fld" id="wSrcWrap"><label class="chk"><input type="checkbox" id="wSrc" checked> From my profit (reinvested)</label></div>
   <div class="fld"><label for="wNote">Note</label><input id="wNote" placeholder="optional" autocomplete="off"></div>
   <button class="btn primary" id="wSave" type="button">SAVE</button>
 </div>
@@ -748,11 +744,11 @@
     checks.push({st:over===0?"ok":(over===1?"mid":"bad"), l:"Withdraw often",
       t:over===0
         ? "no trades taken with "+bankFmt+"+ sitting on the balance · "+pct+"% of profit withdrawn"
-        : over+" trade"+(over===1?"":"s")+" taken with "+bankFmt+"+ on the balance (last 15) · bank it before you trade it"});
+        : over+" trade"+(over===1?"":"s")+" taken with "+bankFmt+"+ on the balance (last 15) · withdraw it before you trade it"});
     if(al>0&&aw>0){
       var ratio=aw/al;
       checks.push({st:ratio>=2.5?"ok":(ratio>=1.2?"mid":"bad"), l:"Win 3x what you lose",
-        t:"last 15: avg win "+fmt$(aw)+" vs avg loss "+fmt$(-al)+" · that is "+ratio.toFixed(1)+":1, goal 3:1"+(ratio<1.2?" · losers are outgrowing winners, take the 3:1 and leave":"")});
+        t:"last 15: avg win "+fmt$(Math.round(aw))+" vs avg loss "+fmt$(-Math.round(al))+" · that is "+ratio.toFixed(1)+":1, goal 3:1"+(ratio<1.2?" · losers are outgrowing winners, take the 3:1 and leave":"")});
       var big=rl.filter(function(t){return -t.pnl>aw}).length;
       checks.push({st:big===0?"ok":(big===1?"mid":"bad"), l:"Cap the losers",
         t:big+" loss"+(big===1?"":"es")+" bigger than your average winner in the last 15"+(big>1?" · this is where the profit leaks":"")});
@@ -760,7 +756,7 @@
     var fast=0;
     for(var i=1;i<recent.length;i++){
       if((recent[i-1].pnl||0)<0){
-        var dt=(new Date(recent[i].ts)-new Date(recent[i-1].ts))/6e4;
+        var dt=(new Date(recent[i].openTs||recent[i].ts)-new Date(recent[i-1].ts))/6e4;
         if(dt>=0&&dt<=5)fast++;
       }
     }
@@ -899,7 +895,7 @@
       d2.elM.textContent="now "+(o.mark!=null?o.mark:"?")+"  \u00B7  TP "+(o.tp!=null?o.tp:"\u2013")+" \u00B7 SL "+(o.sl!=null?o.sl:"\u2013");
       d2.elD.textContent=dist!=null?(dist.toFixed(1)+" pts"+(pct!=null?" ("+pct.toFixed(2)+"%)":"")):"\u2013";
     });
-    $("openAsOf").textContent=latest?("as of "+latest.slice(5,16).replace("T"," ")):"";
+    $("openAsOf").textContent=latest?("as of "+dayLabel(latest.slice(0,10))+", "+latest.slice(11,16)):"";
   }
 
   function fmtBal(v){return (v<0?"-$":"$")+Math.abs(v).toLocaleString("en-US",{maximumFractionDigits:0})}
@@ -914,7 +910,7 @@
     balEl.textContent=fmtBal(balNow0); balEl.className="cv num "+(balNow0<0?"loss":"");
     $("cWit").textContent=fmtBal(s.wit);
     var re=$("cRei"); re.textContent=fmtBal(s.rei);
-    re.className="cv num "+(s.rei>0?"loss":"");
+    re.className="cv num "+(s.rei>0?"rei":"");
     var sb=$("sumBal");
     var newTxt=s.net===0?"$0":fmt$(s.net);
     if(prevNet!=null&&prevNet!==s.net&&!window.matchMedia("(prefers-reduced-motion: reduce)").matches){
@@ -973,7 +969,7 @@
     var merged=list.map(function(t){return {k:"t",ts:String(t.ts||""),o:t}})
       .concat((d.fl||[]).map(function(f){return {k:"f",ts:String(f.ts||""),o:f}}));
     merged.sort(function(a,b){return a.ts.localeCompare(b.ts)});
-    if(!merged.length){$("logCount").textContent="";host.innerHTML='<div class="empty">Nothing logged yet. Hit LOG TRADE and start the run.</div>';return}
+    if(!merged.length){$("logCount").textContent="";host.innerHTML='<div class="empty">Nothing logged yet. Trades land here as they close.</div>';return}
     var last=merged.slice().reverse();
     var groups=[], cur=null;
     last.forEach(function(it){
@@ -1043,7 +1039,9 @@
   function showTip(box,x,y,html){
     tip.innerHTML=html; tip.style.display="block";
     var r=box.getBoundingClientRect();
-    tip.style.left=(r.left+window.scrollX+x)+"px";
+    var half=tip.offsetWidth/2+4, vw=document.documentElement.clientWidth;
+    var lx=Math.max(half,Math.min(r.left+window.scrollX+x,window.scrollX+vw-half));
+    tip.style.left=lx+"px";
     tip.style.top=(r.top+window.scrollY+y)+"px";
   }
   function hideTip(){tip.style.display="none"}
@@ -1061,10 +1059,11 @@
     return d;
   }
   function renderEquity(d){
+    hideTip();
     var box=$("eqBox");
     var balMode=false; /* balance view removed 09-30, P&L only */
     $("eqLegend").hidden=true;
-    if(!d.days.length){box.innerHTML='<div class="empty">Your '+(balMode?"balance":"P&amp;L")+' curve draws itself here after the first trade or deposit.</div>';$("eqRange").textContent="";return}
+    if(!d.days.length){box.innerHTML='<div class="empty">Your P&amp;L curve draws itself here after the first trade.</div>';$("eqRange").textContent="";return}
     var start=(typeof settings.startBalance==="number"?settings.startBalance:0);
     var pts, moneyPts=null;
     if(balMode){
@@ -1079,7 +1078,7 @@
       pts=[{x:0,v:0}];
       d.days.forEach(function(day,i){cum+=day.pnl;pts.push({x:i+1,v:cum,day:day.day,dpnl:day.pnl})});
     }
-    $("eqRange").textContent=d.days[0].day+" → "+d.days[d.days.length-1].day;
+    $("eqRange").textContent=dayLabel(d.days[0].day)+" to "+dayLabel(d.days[d.days.length-1].day);
     var W=Math.max(300,box.clientWidth||600), H=180, padL=50, padR=12, padT=12, padB=22;
     var vals=pts.map(function(p){return p.v});
     var min=balMode?Math.min.apply(null,vals):Math.min(0,Math.min.apply(null,vals));
@@ -1151,9 +1150,10 @@
   }
 
   function renderDaily(d){
+    hideTip();
     var box=$("dayBox");
     var days=d.days.slice(-dailyRange);
-    if(!days.length){box.innerHTML='<div class="empty">Daily bars land here. Green over the line, copper under it, gold when you bank.</div>';$("dayRange").textContent="";$("dayLegend").hidden=true;return}
+    if(!days.length){box.innerHTML='<div class="empty">Daily bars land here. Green for profit, red for loss, light blue when you withdraw.</div>';$("dayRange").textContent="";$("dayLegend").hidden=true;return}
     $("dayLegend").hidden=false;
     var pnlDays=days.filter(function(x){return x.n>0});
     var avgD=pnlDays.length?pnlDays.reduce(function(a,x){return a+x.pnl},0)/pnlDays.length:null;
@@ -1191,7 +1191,7 @@
       }
       if(x.bank!=null){
         var y2=Y(x.bank), top2=Math.min(y0,y2), h2=Math.max(2,Math.abs(y0-y2));
-        bars+='<rect data-i="'+i+'" x="'+(x0+half+1).toFixed(1)+'" y="'+top2.toFixed(1)+'" width="'+half.toFixed(1)+'" height="'+h2.toFixed(1)+'" rx="3" fill="'+(x.bank>=0?"url(#g4b)":"rgba(245,158,75,.7)")+'"/>';
+        bars+='<rect data-i="'+i+'" data-k="b" x="'+(x0+half+1).toFixed(1)+'" y="'+top2.toFixed(1)+'" width="'+half.toFixed(1)+'" height="'+h2.toFixed(1)+'" rx="3" fill="'+(x.bank>=0?"url(#g4b)":"rgba(245,158,75,.7)")+'"/>';
       }
     });
     var hits="";
@@ -1218,7 +1218,10 @@
         var r=svg.getBoundingClientRect();
         var bb=t.getBBox();
         var html="";
-        if(x.pnl!=null){
+        var kind=t.getAttribute("data-k");
+        if(kind==="b"&&x.bank!=null){
+          html='<b class="'+(x.bank>=0?"":"loss")+'">'+(x.bank>=0?"-":"+")+"$"+Math.abs(x.bank).toLocaleString("en-US")+'</b> '+(x.bank>=0?"withdrawn":"reinvested");
+        } else if(x.pnl!=null){
           html='<b class="'+(x.pnl>0?"win":x.pnl<0?"loss":"")+'">'+fmt$(x.pnl)+'</b>';
           var pi=+t.getAttribute("data-i"), prev=null;
           for(var q=pi-1;q>=0;q--){ if(series[q].pnl!=null){prev=series[q];break} }
@@ -1226,8 +1229,6 @@
             var dd=x.pnl-prev.pnl, pp=dd/Math.abs(prev.pnl)*100;
             html+=' <b class="'+(dd>0?"win":dd<0?"loss":"")+'">('+(pp>=0?"+":"")+pp.toFixed(0)+'%)</b>';
           }
-        } else if(x.bank!=null){
-          html='<b>'+fmt$(x.bank)+'</b>';
         }
         showTip(box,(bb.x+bb.width/2)*(r.width/W),bb.y*(r.height/H),html);
       } else hideTip();
@@ -1275,7 +1276,7 @@
     var amt=num("wAmt");
     if(amt===undefined||isNaN(amt)||amt<=0){toast("Enter an amount.");return}
     var when=$("wWhen").value?new Date($("wWhen").value):new Date();
-    var ts=when.toISOString().slice(0,19)+"Z";
+    var ts=new Date(when.getTime()+3*3600e3).toISOString().slice(0,19)+"Z"; /* broker time, UTC+3 */
     var id="f-"+ts.slice(0,10).replace(/-/g,"")+"-"+Math.random().toString(36).slice(2,6);
     var f={id:id,ts:ts,type:flowType,amount:amt};
     if(flowType==="deposit"&&$("wSrc").checked)f.source="profit";
@@ -1284,7 +1285,7 @@
     db.collection("flows").doc(id).set(f).then(function(){
       btn.disabled=false; sheet("Flow",false);
       $("wAmt").value="";$("wNote").value="";
-      toast(flowType==="withdraw"?("Banked "+fmtBal(amt)+"."):("Deposit "+fmtBal(amt)+" logged."));
+      toast(flowType==="withdraw"?("Withdrawn "+fmtBal(amt)+"."):("Deposit "+fmtBal(amt)+" logged."));
     }).catch(function(){btn.disabled=false;toast("Save failed.")});
   });
 
@@ -1298,12 +1299,12 @@
 
   $("fLog").addEventListener("submit",function(e){
     e.preventDefault();
-    if(!db){toast("Not connected. Open on claude.ai signed in.");return}
+    if(!db){toast("Not connected. Open this on claude.ai while signed in.");return}
     var sym=$("fSym").value.trim().toUpperCase();
     var pnl=num("fPnl");
     if(!sym||pnl===undefined||isNaN(pnl))return;
     var when=$("fWhen").value?new Date($("fWhen").value):new Date();
-    var ts=when.toISOString().slice(0,19)+"Z";
+    var ts=new Date(when.getTime()+3*3600e3).toISOString().slice(0,19)+"Z"; /* broker time, UTC+3 */
     var id="t-"+ts.slice(0,10).replace(/-/g,"")+"-"+Math.random().toString(36).slice(2,6);
     var t={id:id,ts:ts,symbol:sym,market:$("fMkt").value,dir:dir,pnl:pnl};
     var e2=num("fEntry"),x2=num("fExit"),sz=num("fSize"),fe=num("fFees"),r=num("fR");
@@ -1432,20 +1433,33 @@
       if(mirror){
         $("fab").hidden=true; $("btnSettings").hidden=true; $("btnFlow").hidden=true;
         var blt=$("btnLogTop"); if(blt)blt.hidden=true;
-        note.textContent="Mirror view, live from the broker. Logging happens on the Claude dashboard.";
-        /* tick stream when the host offers it (Railway); polling below stays as fallback */
+        var dd0=$("detDelete"); if(dd0)dd0.style.display="none";
+        var noteLive=function(){
+          var extra="";
+          if(upd){
+            var ageMin=(Date.now()-(Date.parse(upd)-3*3600e3))/60000;
+            extra=" \u00B7 updated "+String(upd).slice(11,16);
+            if(ageMin>10){ extra=" \u00B7 data stale "+Math.round(ageMin)+" min"; note.style.color="var(--loss)"; }
+            else note.style.color="";
+          }
+          note.textContent="Mirror view, live from the broker."+extra;
+        };
+        noteLive();
+        /* tick stream only where the host offers it (Railway); polling stays as fallback */
         var sseAt=0;
-        try{
-          var es=new EventSource("stream");
-          es.onmessage=function(ev){
-            try{
-              var dd=JSON.parse(ev.data);
-              if(dd.open)openPos=dd.open;
-              if(dd.orders)orders=dd.orders;
-              sseAt=Date.now(); renderOpen();
-            }catch(e2){}
-          };
-        }catch(e){}
+        if((typeof mm!=="undefined"&&mm&&mm.stream)||/railway\.app$/i.test(location.hostname)){
+          try{
+            var es=new EventSource("stream");
+            es.onmessage=function(ev){
+              try{
+                var dd=JSON.parse(ev.data);
+                if(dd.open)openPos=dd.open;
+                if(dd.orders)orders=dd.orders;
+                sseAt=Date.now(); renderOpen();
+              }catch(e2){}
+            };
+          }catch(e){}
+        }
         setInterval(async function(){
           if(Date.now()-sseAt<4000)return;
           try{
@@ -1458,6 +1472,10 @@
           try{
             var r2=await fetch("trades.json",{cache:"no-store"}); if(r2.ok)trades=(await r2.json())||[];
             var r3=await fetch("flows.json",{cache:"no-store"}); if(r3.ok)flows=(await r3.json())||[];
+            var r4=await fetch("meta.json",{cache:"no-store"});
+            if(r4.ok){ var m4=await r4.json(); if(m4&&m4.updated)upd=m4.updated;
+              if(!savingsLive&&m4&&m4.savings&&typeof m4.savings.sats==="number")setSats(m4.savings.sats); }
+            noteLive();
             render();
           }catch(e){}
         },10000);
