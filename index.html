@@ -648,13 +648,14 @@
       else if(e.k==="s"){ preBal[e.o.id]=runBal; }
       else { runBal+=(e.o.pnl||0); }
     });
-    var s={n:list.length,net:0,wins:0,losses:0,gw:0,gl:0,rSum:0,rN:0,maxR:0,maxPnl:-Infinity,bestSym:"",
+    var s={n:list.length,net:0,wins:0,losses:0,gw:0,gl:0,rSum:0,rN:0,maxR:0,maxPnl:-Infinity,bestSym:"",wpl:0,wplN:0,lpl:0,lplN:0,
            tagged:0,winStreak:0,maxWinStreak:0,dayStreak:0,greenDays:0,greenWeek:false,comeback:false};
     var run=0;
     list.forEach(function(t){
       var p=t.pnl||0; s.net+=p;
       if(p>0){s.wins++;s.gw+=p;run++;if(run>s.maxWinStreak)s.maxWinStreak=run}
       else if(p<0){s.losses++;s.gl+=-p;run=0}
+      if(t.size>0){ if(p>0){s.wpl+=p/t.size;s.wplN++} else if(p<0){s.lpl+=p/t.size;s.lplN++} }
       var rl0=(typeof settings.riskPerLot==="number"&&settings.riskPerLot>0)?settings.riskPerLot:1000;
       var rEff=(typeof t.r==="number")?t.r:((t.size>0)?p/(rl0*t.size):(((preBal[t.id]||0)>0)?p/preBal[t.id]:null));
       if(rEff!=null){s.rSum+=rEff;s.rN++;if(rEff>s.maxR)s.maxR=rEff}
@@ -693,9 +694,8 @@
     $("tTrades").textContent=s.n;
     $("tWr").textContent=s.n?Math.round(s.wins/s.n*100)+"%":"–";
     $("tPf").textContent=s.gl>0?(s.gw/s.gl).toFixed(2):(s.gw>0?"∞":"–");
-    var rlT=(typeof settings.riskPerLot==="number"&&settings.riskPerLot>0)?settings.riskPerLot:1000;
-    $("tR").textContent=s.rN?(fmt$(s.rSum/s.rN*rlT)+"/lot"):"–";
-    $("tR").className="v num "+(s.rN&&s.rSum>0?"win":s.rN&&s.rSum<0?"loss":"");
+    $("tR").textContent=s.wplN?(fmt$(s.wpl/s.wplN)+"/lot"):"–";
+    $("tR").className="v num "+(s.wplN?"win":"");
     var best=$("tBest");
     if(s.lastWitDay&&s.lastDay){
       var wgap=Math.round((new Date(s.lastDay+"T00:00:00Z")-new Date(s.lastWitDay+"T00:00:00Z"))/864e5);
@@ -897,7 +897,7 @@
     var bits=[];
     if(s.net>0)bits.push("banked "+Math.round(Math.min(1,s.wit/s.net)*100)+"% of profit");
     if(s.n)bits.push(s.wins+"W / "+s.losses+"L");
-    if(s.rN)bits.push("avg trade "+fmt$(s.rSum/s.rN*((typeof settings.riskPerLot==="number"&&settings.riskPerLot>0)?settings.riskPerLot:1000))+" per lot");
+    if(s.wplN&&s.lplN)bits.push("avg win "+fmt$(s.wpl/s.wplN)+" vs "+fmt$(s.lpl/s.lplN)+" per lot");
     $("sumSub").textContent=bits.join(" · ");
     var host=$("flist"); host.innerHTML="";
     d.fl.slice(-5).reverse().forEach(function(f){
