@@ -531,7 +531,7 @@
     balEl.textContent=fmtBal(balNow0); balEl.className="cv num "+(balNow0<0?"loss":"");
     $("cWit").textContent=fmtBal(s.wit);
     var re=$("cRei"); re.textContent=fmtBal(s.rei);
-    re.className="cv num "+(s.rei>0?"win":"");
+    re.className="cv num "+(s.rei>0?"loss":"");
     var sb=$("sumBal"); sb.textContent=s.net===0?"$0":fmt$(s.net);
     sb.className="num "+(s.net>0?"win":s.net<0?"loss":"");
     var bits=[];
