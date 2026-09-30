@@ -396,7 +396,28 @@
   var db=null, unsubT=null, unsubS=null, unsubF=null, unsubO=null;
   var trades=[], flows=[], settings={}, openPos=[];
   var dir="long", flowType="deposit", detailId=null, detailKind="trade", deleteArmed=false;
-  var chartMode="bal", dailyRange=15, logLimit=25;
+  var chartMode="bal", dailyRange=15, logLimit=25, countsDone=false;
+
+  /* count the key figures up from 0 on first load */
+  function animateNums(){
+    if(window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches)return;
+    ["sumBal","cDep","cProf","cWit","cRei","vpct","tWr","tPf","tR","tTrades"].forEach(function(id){
+      var el=$(id); if(!el)return;
+      var fin=el.textContent;
+      var m=fin.match(/^([^0-9]*)([\d,]+(?:\.\d+)?)([^0-9]*)$/);
+      if(!m)return;
+      var num=parseFloat(m[2].replace(/,/g,"")); if(isNaN(num)||num===0)return;
+      var dec=(m[2].split(".")[1]||"").length;
+      var t0=performance.now(), dur=750;
+      function step(now){
+        var k=Math.min(1,(now-t0)/dur); k=1-Math.pow(1-k,3);
+        var v=num*k;
+        el.textContent=m[1]+v.toLocaleString("en-US",{minimumFractionDigits:dec,maximumFractionDigits:dec})+m[3];
+        if(k<1){requestAnimationFrame(step)}else{el.textContent=fin}
+      }
+      requestAnimationFrame(step);
+    });
+  }
   try{ chartMode=localStorage.getItem("pit-chart")||"bal"; }catch(e){}
   try{ dailyRange=+localStorage.getItem("pit-days")||15; }catch(e){}
   if(dailyRange!==7&&dailyRange!==15)dailyRange=15;
@@ -492,6 +513,7 @@
     $("tGreen").textContent=d.tradeDays.length?(s.greenDays+" / "+d.tradeDays.length):"–";
 
     renderCapital(d); renderRules(d); renderEquity(d); renderDaily(d); renderList(d); renderOpen();
+    if(!countsDone&&(trades.length||flows.length)){countsDone=true;animateNums()}
   }
 
   /* Honest audit of the owner's own rules, computed from the last 15 trades.
