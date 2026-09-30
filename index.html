@@ -7,7 +7,7 @@
 </head>
 <body>
 <title>The Pit</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
 <style>
   :root{
     --bg:#060504; --surface:#0E0C09; --raised:#171410;
@@ -18,7 +18,7 @@
     --win-dim:rgba(63,217,160,.12); --loss-dim:rgba(240,128,92,.13);
     --accent-dim:rgba(205,179,126,.12); --gold-dim:rgba(233,197,107,.10);
     --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
-    --body:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+    --body:"Sora",system-ui,-apple-system,"Segoe UI",sans-serif;
     color-scheme:dark;
   }
   *{box-sizing:border-box}
@@ -230,6 +230,40 @@
   @media (hover:none),(prefers-reduced-motion:reduce){#cursorGlow{display:none}}
   .showmore{display:block;margin:12px auto 2px;background:none;border:0;color:var(--ink-3);font:inherit;font-size:11px;letter-spacing:.04em;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
   .showmore:hover{color:var(--gold)}
+
+  /* ---- DeFi glass skin (owner-approved mockup, 2026-09-30) ---- */
+  :root{
+    --bg:#06080D; --win:#3DE0A8; --loss:#FF7A5C; --gold:#EEC862; --accent:#D8C08A;
+    --line:rgba(238,200,98,.20); --line-soft:rgba(255,255,255,.07); --hairline:rgba(255,255,255,.09);
+    --ink:#F2F4F8; --ink-2:#A6AEC0; --ink-3:#8A93A6;
+    --win-dim:rgba(61,224,168,.12); --loss-dim:rgba(255,122,92,.13);
+    --accent-dim:rgba(216,192,138,.12); --gold-dim:rgba(238,200,98,.10);
+  }
+  body{background:var(--bg)}
+  #top{background:linear-gradient(var(--bg) 55%,rgba(6,8,13,0))}
+  #ambient{background:
+    radial-gradient(640px 520px at 12% -6%,rgba(238,200,98,.15),transparent 70%),
+    radial-gradient(620px 540px at 92% -4%,rgba(124,92,255,.11),transparent 70%),
+    radial-gradient(700px 620px at 55% 48%,rgba(56,224,186,.06),transparent 70%)}
+  .card,#tiles{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);border-radius:22px;backdrop-filter:blur(26px);-webkit-backdrop-filter:blur(26px);box-shadow:inset 0 1px 0 rgba(255,255,255,.11)}
+  #sumCard{border-color:rgba(238,200,98,.26)}
+  #sumCard::before{background:radial-gradient(closest-side,rgba(238,200,98,.15),transparent 72%)}
+  #top button,.hbtn{background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1)}
+  #heroV{background:linear-gradient(160deg,rgba(238,200,98,.10),rgba(255,255,255,.03) 55%);border:1px solid rgba(238,200,98,.28);border-radius:18px;align-items:center;text-align:center}
+  #heroV .vhead{width:100%;justify-content:center;gap:14px}
+  #vring{width:132px;height:132px;border-radius:50%;margin-top:12px;flex:none;background:conic-gradient(var(--gold) 0deg,rgba(255,255,255,.08) 0deg);display:flex;align-items:center;justify-content:center;box-shadow:0 0 36px rgba(238,200,98,.18)}
+  #vringIn{width:108px;height:108px;border-radius:50%;background:#0A0D14;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px}
+  #vpct{font-size:24px;margin-top:0}
+  .vsub{font-size:10px;color:var(--ink-3)}
+  #vaddr{margin-top:12px;width:100%}
+  #vaddr code{text-align:center}
+  #flist,#rchecks{background:rgba(0,0,0,.30);border-color:rgba(255,255,255,.06);border-radius:14px}
+  #openCard{background:rgba(61,224,168,.05);border-color:rgba(61,224,168,.22)}
+  #sumBal.win{text-shadow:0 0 32px rgba(61,224,168,.35)}
+  #fab{border-radius:999px}
+  .btn.primary,.btn.ghost,.btn.danger{border-radius:14px}
+  .sheet{background:rgba(16,19,27,.92);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);border-color:rgba(255,255,255,.1)}
+  #eqBox svg path[stroke]{filter:drop-shadow(0 0 8px rgba(238,200,98,.35))}
 </style>
 <div id="bgCandles" aria-hidden="true"></div>
 <div id="ambient" aria-hidden="true"></div>
@@ -238,8 +272,12 @@
 <div id="wrap">
   <div id="top">
     <div id="brand">THE<b>PIT</b></div>
-    <button id="btnSettings" type="button">Setup</button>
+    <div style="display:flex;gap:8px">
+      <button id="btnImport" type="button" hidden>Import</button>
+      <button id="btnSettings" type="button">Setup</button>
+    </div>
   </div>
+  <input id="impFile" type="file" accept="image/*" multiple hidden>
 
   <div id="main">
     <section class="card" id="sumCard">
@@ -253,8 +291,7 @@
         </div>
         <div id="heroV">
           <div class="vhead"><span class="lbl">BTC vault</span><span class="lbl">Goal 1 BTC</span></div>
-          <div id="vpct" class="num">&ndash;</div>
-          <div id="vbar"><div id="vfill"></div></div>
+          <div id="vring"><div id="vringIn"><div id="vpct" class="num">&ndash;</div><div class="vsub">of one bitcoin</div></div></div>
           <div id="vaddr"><code id="vaddrTxt" role="button" tabindex="0" title="Tap to copy">bc1q6947reqr6weujqra7s8ahrq06tz9hph3lgh8l6</code></div>
         </div>
       </div>
@@ -995,7 +1032,8 @@
     if(typeof v!=="number")return;
     var pct=v/1e8*100;
     $("vpct").textContent=pct.toFixed(2)+"%";
-    $("vfill").style.width=Math.min(100,pct)+"%";
+    var f=$("vfill"); if(f)f.style.width=Math.min(100,pct)+"%";
+    var ring=$("vring"); if(ring)ring.style.background="conic-gradient(var(--gold) "+(Math.min(100,pct)*3.6)+"deg, rgba(255,255,255,.08) 0deg)";
   }
   (async function(){
     try{
@@ -1078,6 +1116,65 @@
     db.doc("meta/savings").onSnapshot(function(snap){
       if(!savingsLive&&snap.exists)setSats(snap.data().sats||0);
     },function(){});
+
+    /* screenshot import: Claude reads a statement image, logs only what is new */
+    (async function(){
+      try{
+        var sample=await window.claude.use("sample");
+        if(!sample)return;
+        var lim=await sample.limits().catch(function(){return null});
+        if(!lim||!lim.images)return;
+        var btn=$("btnImport"), inp=$("impFile");
+        btn.hidden=false;
+        if(lim.images.mediaTypes&&lim.images.mediaTypes.length)inp.accept=lim.images.mediaTypes.join(",");
+        btn.addEventListener("click",function(){inp.click()});
+        inp.addEventListener("change",async function(){
+          if(!inp.files||!inp.files.length)return;
+          var files=Array.prototype.slice.call(inp.files,0,lim.images.maxCount||4);
+          btn.disabled=true; btn.textContent="Reading...";
+          try{
+            var exT=trades.map(function(t){return String(t.ts||"").slice(0,16)+" "+(t.symbol||"")+" "+(t.pnl||0)}).join("\n");
+            var exF=flows.map(function(f){return String(f.ts||"").slice(0,16)+" "+f.type+" "+(f.amount||0)}).join("\n");
+            var res=await sample.json(
+              "These images are MetaTrader 5 trade history screenshots (broker: Vantage Markets; symbols like XAUUSD+, BTCUSD).\n"+
+              "Extract every CLOSED trade row and every balance operation (deposit, withdrawal, transfer) visible, then keep ONLY rows that are NOT already recorded below.\n"+
+              "ALREADY RECORDED TRADES (ts symbol pnl):\n"+exT+"\n"+
+              "ALREADY RECORDED MONEY MOVES (ts type amount):\n"+exF+"\n"+
+              "Rules: buy=long, sell=short. pnl is negative for losses. amount always positive. Withdraw-CC and Transfer Out are type withdraw; Deposit rows are type deposit. Fold tiny audit Credit deductions into the adjacent withdrawal amount. Timestamps as shown, format YYYY-MM-DDTHH:MM:SSZ. Strip the + from symbol names.\n"+
+              'Reply with ONLY JSON: {"trades":[{"ts":"2026-09-30T10:00:00Z","symbol":"XAUUSD","dir":"long","entry":0,"exit":0,"size":1,"pnl":0}],"flows":[{"ts":"2026-09-30T10:00:00Z","type":"deposit","amount":1000,"notes":""}]} with empty arrays when nothing is new.',
+              {images:files,cache:false}
+            );
+            var nt=(res&&res.trades)||[], nf=(res&&res.flows)||[];
+            var seenT={}; trades.forEach(function(t){seenT[String(t.ts||"").slice(0,16)+"|"+(t.pnl||0)]=1});
+            nt=nt.filter(function(t){return t&&t.ts&&typeof t.pnl==="number"&&!seenT[String(t.ts).slice(0,16)+"|"+t.pnl]});
+            var seenF={}; flows.forEach(function(f){seenF[String(f.ts||"").slice(0,16)+"|"+f.type+"|"+Math.round(f.amount||0)]=1});
+            nf=nf.filter(function(f){return f&&f.ts&&+f.amount>0&&!seenF[String(f.ts).slice(0,16)+"|"+(f.type==="withdraw"?"withdraw":"deposit")+"|"+Math.round(+f.amount)]});
+            if(!nt.length&&!nf.length){toast("Nothing new on that screenshot.");return}
+            for(var i=0;i<nt.length;i++){
+              var t=nt[i];
+              var id="t-"+String(t.ts).slice(0,10).replace(/-/g,"")+"-"+Math.random().toString(36).slice(2,6);
+              var sym=String(t.symbol||"?").toUpperCase().replace(/\+$/,"");
+              var body={id:id,ts:String(t.ts),symbol:sym,market:(sym.indexOf("BTC")===0||sym.indexOf("ETH")===0)?"crypto":"forex",dir:(t.dir==="short"?"short":"long"),pnl:+t.pnl};
+              if(t.entry!=null)body.entry=+t.entry; if(t.exit!=null)body.exit=+t.exit; if(t.size!=null)body.size=+t.size;
+              await db.collection("trades").doc(id).set(body);
+            }
+            for(var j=0;j<nf.length;j++){
+              var f2=nf[j];
+              var fid="f-"+String(f2.ts).slice(0,10).replace(/-/g,"")+"-"+Math.random().toString(36).slice(2,6);
+              var fb={id:fid,ts:String(f2.ts),type:(f2.type==="withdraw"?"withdraw":"deposit"),amount:+f2.amount};
+              if(fb.type==="deposit")fb.source="profit";
+              if(f2.notes)fb.notes=String(f2.notes).slice(0,120);
+              await db.collection("flows").doc(fid).set(fb);
+            }
+            toast("Imported "+nt.length+" trade"+(nt.length===1?"":"s")+(nf.length?(" + "+nf.length+" money move"+(nf.length===1?"":"s")):"")+".");
+          }catch(e){
+            toast(e&&e.code==="not_granted"?"Allow Claude for this page to use import.":(e&&e.code==="invalid_json"?"Could not read that screenshot. Try a clearer one.":"Import failed."));
+          }finally{
+            btn.disabled=false; btn.textContent="Import"; inp.value="";
+          }
+        });
+      }catch(e){}
+    })();
   })();
 
   /* cursor light, ported from the 3x site */
