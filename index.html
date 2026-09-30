@@ -116,8 +116,6 @@
   /* ---- charts ---- */
   .chartbox{position:relative;margin-top:4px}
   .chartbox svg{display:block;width:100%;height:auto}
-  #eqBox svg path[stroke]{filter:drop-shadow(0 0 7px rgba(233,197,107,.3))}
-  #eqBox svg circle{filter:drop-shadow(0 0 6px rgba(233,197,107,.85))}
   .sq{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:6px;vertical-align:-1px}
   .sq.sp{background:var(--win)} .sq.sl{background:var(--loss)} .sq.sb{background:var(--gold)} .sq.sd{background:var(--ink-3)}
   .mini-seg{display:inline-flex;gap:2px;background:rgba(255,255,255,.04);border:1px solid var(--hairline);border-radius:8px;padding:2px}
@@ -252,7 +250,6 @@
   #fab{border-radius:999px}
   .btn.primary,.btn.ghost,.btn.danger{border-radius:14px}
   .sheet{background:rgba(16,19,27,.92);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);border-color:rgba(255,255,255,.1)}
-  #eqBox svg path[stroke]{filter:drop-shadow(0 0 8px rgba(238,200,98,.35))}
 
   /* mockup-faithful structure: hero = two sibling cards; stats = floating tiles */
   #wrap{max-width:1240px}
@@ -312,7 +309,6 @@
   #top{padding:14px 22px}
   #heroL{align-self:flex-start;text-align:left;width:100%}
   #brand::before{content:none}
-  #brandMark{width:19px;height:19px;margin-right:10px;flex:none;filter:drop-shadow(0 0 6px rgba(238,200,98,.45))}
   #brand b{color:var(--gold);font-weight:700;margin-left:2px;font-size:16px;line-height:1}
 
   /* mockup fidelity: row bars, flat instruments, dim info tone */
@@ -393,6 +389,7 @@
   #dayLegend,#eqLegend{display:flex;gap:14px;align-items:center;justify-content:center;margin-top:12px;font-family:var(--mono);font-size:10px;letter-spacing:.06em;color:var(--ink-3);flex-wrap:wrap}
   #dayLegend[hidden],#eqLegend[hidden]{display:none}
   .sq{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+  #dayLegend,#eqLegend{margin-top:8px}
 </style>
 <div id="bgCandles" aria-hidden="true"></div>
 <div id="bgCandlesLit" aria-hidden="true"></div><div class="bgc cl2"></div><div class="bgc cl3"></div><div class="bgc cl4"></div><div class="bgc cl5"></div><div class="bgc cl6"></div><div class="bgc cl7"></div></div>
@@ -1071,12 +1068,19 @@
     }
     var zero=(!balMode&&min<0&&max>0)?'<line x1="'+padL+'" y1="'+Y(0)+'" x2="'+(W-padR)+'" y2="'+Y(0)+'" stroke="var(--ink-3)" stroke-width="1" stroke-dasharray="3 4"/>':"";
     var last=pts[pts.length-1];
+    var marks="";
+    if(pts.length<=45){
+      pts.slice(1,-1).forEach(function(pp){
+        marks+='<circle cx="'+X(pp.x).toFixed(1)+'" cy="'+Y(pp.v).toFixed(1)+'" r="2.6" fill="var(--bg)" stroke="'+lineCol+'" stroke-width="1.5"/>';
+      });
+    }
+    var lyv=Math.max(Y(last.v)-9,11);
     box.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="'+(balMode?"Account balance and money in, by day":"Cumulative P&L by day")+'">'+
       grid+zero+labels+
-      '<path d="'+area+'" fill="'+areaCol+'"/>'+
-      (money?'<path d="'+money+'" fill="none" stroke="var(--ink-3)" stroke-width="2" stroke-dasharray="4 5"/>':"")+
-      '<path d="'+path+'" fill="none" stroke="'+lineCol+'" stroke-width="2" stroke-linejoin="round"/>'+
-      '<circle cx="'+X(last.x)+'" cy="'+Y(last.v)+'" r="4" fill="'+lineCol+'" stroke="var(--bg)" stroke-width="2"/>'+
+      '<line x1="'+X(last.x)+'" y1="'+Y(last.v)+'" x2="'+X(last.x)+'" y2="'+(H-padB)+'" stroke="rgba(238,200,98,.25)" stroke-width="1" stroke-dasharray="2 4"/>'+
+      '<path d="'+path+'" fill="none" stroke="'+lineCol+'" stroke-width="1.5" stroke-linejoin="round"/>'+marks+
+      '<circle cx="'+X(last.x)+'" cy="'+Y(last.v)+'" r="3.5" fill="'+lineCol+'"/>'+
+      '<text x="'+(X(last.x)-8)+'" y="'+lyv+'" text-anchor="end" font-size="11" font-weight="600" fill="'+lineCol+'" font-family="IBM Plex Mono,monospace">'+(balMode?fmtBal(last.v):fmt$(last.v))+'</text>'+
       '<line id="eqCross" x1="0" y1="'+padT+'" x2="0" y2="'+(H-padB)+'" stroke="var(--ink-3)" stroke-width="1" opacity="0"/>'+
       '</svg>';
     var svg=box.querySelector("svg"), cross=box.querySelector("#eqCross");
@@ -1122,10 +1126,10 @@
     series.forEach(function(x){ if(x.pnl!=null)vals.push(x.pnl); if(x.bank!=null)vals.push(x.bank); });
     var min=Math.min.apply(null,vals), max=Math.max.apply(null,vals);
     if(min===max)max=min+1;
-    var W=Math.max(300,box.clientWidth||600), H=180, padL=50, padR=12, padT=12, padB=22;
+    var W=Math.max(300,box.clientWidth||600), H=150, padL=50, padR=12, padT=10, padB=24;
     var Y=function(v){return padT+(1-(v-min)/(max-min))*(H-padT-padB)};
     var plotW=W-padL-padR;
-    var bw=Math.min(plotW/days.length,64);
+    var bw=Math.min(plotW/days.length,48);
     var xStart=padL+(plotW-bw*days.length)/2;
     var grid="",labels="";
     for(var i=0;i<=3;i++){
@@ -1134,10 +1138,10 @@
       labels+='<text x="'+(padL-8)+'" y="'+(y+3)+'" text-anchor="end" font-size="10" fill="var(--ink-3)" font-family="IBM Plex Mono,monospace">'+(v<0?"-":"")+"$"+Math.round(Math.abs(v)).toLocaleString("en-US")+'</text>';
     }
     var bars="", y0=Y(0);
-    var half=Math.max(2,bw/2-1.5);
+    var half=Math.max(2,Math.min(bw/2-1.5,8));
     series.forEach(function(x,i){
       var x0=xStart+i*bw+1;
-      var rx=Math.min(3,half/2);
+      var rx=0;
       if(x.pnl!=null){
         var y1=Y(x.pnl), top=Math.min(y0,y1), h=Math.max(2,Math.abs(y0-y1));
         bars+='<rect data-i="'+i+'" x="'+x0.toFixed(1)+'" y="'+top.toFixed(1)+'" width="'+half.toFixed(1)+'" height="'+h.toFixed(1)+'" rx="'+rx+'" fill="'+(x.pnl>=0?"var(--win)":"var(--loss)")+'" opacity=".9"/>';
@@ -1151,8 +1155,12 @@
     series.forEach(function(x,i){
       hits+='<rect data-i="'+i+'" x="'+(xStart+i*bw).toFixed(1)+'" y="'+padT+'" width="'+bw.toFixed(1)+'" height="'+(H-padT-padB)+'" fill="transparent"/>';
     });
+    var dlbl="", stepD=Math.ceil(series.length/8);
+    series.forEach(function(x,i){
+      if(i%stepD===0)dlbl+='<text x="'+(xStart+i*bw+bw/2).toFixed(1)+'" y="'+(H-6)+'" text-anchor="middle" font-size="8.5" fill="var(--ink-4)" font-family="IBM Plex Mono,monospace">'+(+x.day.slice(8,10))+'</text>';
+    });
     box.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Per day: trade P&L and net banked">'+
-      grid+labels+
+      grid+labels+dlbl+
       '<line x1="'+padL+'" y1="'+y0+'" x2="'+(W-padR)+'" y2="'+y0+'" stroke="var(--ink-3)" stroke-width="1"/>'+bars+hits+'</svg>';
     var svg=box.querySelector("svg");
     svg.addEventListener("pointermove",function(e){
