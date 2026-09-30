@@ -362,8 +362,9 @@
   }
   #ambient{display:none}
   .tprog{margin-top:14px}
-  .pbar{height:7px;background:rgba(255,255,255,.07);border-radius:99px;overflow:hidden}
-  .pfill{height:100%;width:0;background:linear-gradient(90deg,#8F6D24,var(--gold) 55%,#F7E9BE);border-radius:99px;box-shadow:0 0 12px rgba(238,200,98,.45);transition:width .8s cubic-bezier(.2,.8,.2,1)}
+  .pbar{position:relative;height:7px;background:rgba(255,255,255,.07);border-radius:99px}
+  .pfill{height:100%;width:0;background:linear-gradient(90deg,#0F3D2C,#1F8A63);border-radius:99px;transition:width 1.6s linear}
+  .phigh{position:absolute;top:-3px;bottom:-3px;width:2px;left:-9px;background:rgba(61,224,168,.55);border-radius:1px;transition:left 1.2s ease}
   .pmeta{display:flex;justify-content:space-between;gap:12px;margin-top:7px;font-size:10px;color:var(--ink-4);letter-spacing:.04em}
   .pmeta span:nth-child(2){color:var(--ink-3)}
   #bglayers{position:absolute;top:0;left:0;right:0;bottom:0;overflow:hidden;pointer-events:none;z-index:-1}
@@ -712,38 +713,79 @@
     });
   }
 
+  var openDom={};
+  function tweenNum(el,from_,to,dec,prefix,dur){
+    if(from_===to){el.textContent=prefix+fmtT(to,dec);return}
+    var t0=performance.now();
+    function step(now){
+      var k=Math.min(1,(now-t0)/dur); k=1-Math.pow(1-k,3);
+      el.textContent=prefix+fmtT(from_+(to-from_)*k,dec);
+      if(k<1)requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+  function fmtT(v,dec){
+    var s=v<0?"-":"+";
+    return s+"$"+Math.abs(v).toLocaleString("en-US",{minimumFractionDigits:dec,maximumFractionDigits:dec});
+  }
+  function hwKey(t){return "pit-hw-"+t}
   function renderOpen(){
     var card=$("openCard"), host=$("olist");
-    if(!openPos.length){card.hidden=true;return}
-    card.hidden=false; host.innerHTML="";
+    if(!openPos.length){card.hidden=true;host.innerHTML="";openDom={};return}
+    card.hidden=false;
     var latest="";
+    var ids=openPos.map(function(p){return String(p.id)}).sort().join(",");
+    if(openDom._ids!==ids){ host.innerHTML=""; openDom={_ids:ids}; }
     openPos.slice().sort(function(a,b){return String(a.ts).localeCompare(String(b.ts))}).forEach(function(p){
       if(p.markTs&&String(p.markTs)>latest)latest=String(p.markTs);
       var f=(typeof p.float==="number")?p.float:null;
-      var row=document.createElement("div");
-      row.className="trow"; row.style.cursor="default";
-      row.innerHTML=
-        '<div class="dir '+(p.dir==="short"?"short":"long")+'"><svg class="ic" viewBox="0 0 24 24">'+
-        (p.dir==="short"?'<path d="M12 5v14M6 13l6 6 6-6"/>':'<path d="M12 19V5M6 11l6-6 6 6"/>')+'</svg></div>'+
-        '<div><div class="sym">'+esc((p.symbol||"?").toUpperCase())+' <span class="tpsl">x'+esc(p.size!=null?p.size:"?")+'</span></div>'+
-        '<div class="meta num">'+(p.entry!=null?p.entry:"?")+' → '+(p.mark!=null?p.mark:"?")+
-        ' &nbsp; <span class="tpsl">TP '+(p.tp!=null?p.tp:"–")+' · SL '+(p.sl!=null?p.sl:"–")+'</span></div></div>'+
-        '<div class="pnl"><div class="num '+(f>0?"win":f<0?"loss":"")+'">'+(f!=null?fmt$(f):"–")+'</div>'+
-        '<div class="r">floating</div></div>';
-      host.appendChild(row);
+      var prog=null;
       if(p.tp!=null&&p.entry!=null&&p.mark!=null&&p.tp!==p.entry){
-        var prog=(p.dir==="short")?((p.entry-p.mark)/(p.entry-p.tp)*100):((p.mark-p.entry)/(p.tp-p.entry)*100);
+        prog=(p.dir==="short")?((p.entry-p.mark)/(p.entry-p.tp)*100):((p.mark-p.entry)/(p.tp-p.entry)*100);
         prog=Math.max(0,Math.min(100,prog));
-        var tgt=(f!=null&&p.mark!==p.entry)?f*(p.tp-p.entry)/(p.mark-p.entry):null;
-        var rrT=(p.sl!=null&&p.sl!==p.entry)?Math.abs(p.tp-p.entry)/Math.abs(p.entry-p.sl):null;
-        var wrap=document.createElement("div");
-        wrap.className="tprog";
-        wrap.innerHTML=
-          '<div class="pbar"><div class="pfill" style="width:'+prog.toFixed(1)+'%"></div></div>'+
-          '<div class="pmeta num"><span>entry '+p.entry+'</span>'+
-          '<span>'+prog.toFixed(0)+'% to target'+(tgt!=null?' · '+fmt$(tgt)+' at TP':'')+(rrT!=null?' · RR 1:'+rrT.toFixed(1):'')+'</span>'+
-          '<span>TP '+p.tp+'</span></div>';
-        host.appendChild(wrap);
+      }
+      var hw=prog;
+      try{
+        var stored=+localStorage.getItem(hwKey(p.ticket||p.id))||0;
+        if(prog!=null){hw=Math.max(stored,prog);localStorage.setItem(hwKey(p.ticket||p.id),String(hw));}
+      }catch(e){}
+      var tgt=(f!=null&&p.mark!=null&&p.entry!=null&&p.mark!==p.entry&&p.tp!=null)?f*(p.tp-p.entry)/(p.mark-p.entry):null;
+      var rrT=(p.sl!=null&&p.entry!=null&&p.tp!=null&&p.sl!==p.entry)?Math.abs(p.tp-p.entry)/Math.abs(p.entry-p.sl):null;
+      var d=openDom[p.id];
+      if(!d){
+        var row=document.createElement("div");
+        row.className="trow"; row.style.cursor="default";
+        row.innerHTML=
+          '<div class="dir '+(p.dir==="short"?"short":"long")+'"><svg class="ic" viewBox="0 0 24 24">'+
+          (p.dir==="short"?'<path d="M12 5v14M6 13l6 6 6-6"/>':'<path d="M12 19V5M6 11l6-6 6 6"/>')+'</svg></div>'+
+          '<div><div class="sym">'+esc((p.symbol||"?").toUpperCase())+' <span class="tpsl">x'+esc(p.size!=null?p.size:"?")+'</span></div>'+
+          '<div class="meta num"><span class="omark"></span></div></div>'+
+          '<div class="pnl"><div class="num ofloat"></div><div class="r">floating</div></div>';
+        host.appendChild(row);
+        var wrap=null;
+        if(prog!=null){
+          wrap=document.createElement("div");
+          wrap.className="tprog";
+          wrap.innerHTML='<div class="pbar"><div class="pfill"></div><div class="phigh"></div></div>'+
+            '<div class="pmeta num"><span>entry '+p.entry+'</span><span class="omid"></span><span>TP '+p.tp+'</span></div>';
+          host.appendChild(wrap);
+        }
+        d=openDom[p.id]={
+          float:f||0, mark:p.mark||0,
+          elF:row.querySelector(".ofloat"), elM:row.querySelector(".omark"),
+          elFill:wrap?wrap.querySelector(".pfill"):null,
+          elHigh:wrap?wrap.querySelector(".phigh"):null,
+          elMid:wrap?wrap.querySelector(".omid"):null
+        };
+        if(d.elFill)requestAnimationFrame(function(){d.elFill.style.width=prog.toFixed(1)+"%"});
+      }
+      d.elF.className="num ofloat "+(f>0?"win":f<0?"loss":"");
+      if(f!=null){ tweenNum(d.elF,d.float,f,f===Math.round(f)?0:2,"",900); d.float=f; }
+      d.elM.textContent=(p.entry!=null?p.entry:"?")+" \u2192 "+(p.mark!=null?p.mark:"?")+"  \u00B7  TP "+(p.tp!=null?p.tp:"\u2013")+" \u00B7 SL "+(p.sl!=null?p.sl:"\u2013");
+      if(prog!=null&&d.elFill){
+        d.elFill.style.width=prog.toFixed(1)+"%";
+        if(d.elHigh)d.elHigh.style.left="calc("+Math.min(100,hw).toFixed(1)+"% - 1px)";
+        if(d.elMid)d.elMid.textContent=prog.toFixed(0)+"% to target"+(hw!=null&&hw>prog+0.5?" \u00B7 high "+hw.toFixed(0)+"%":"")+(tgt!=null?" \u00B7 "+fmt$(tgt)+" at TP":"")+(rrT!=null?" \u00B7 RR 1:"+rrT.toFixed(1):"");
       }
     });
     $("openAsOf").textContent=latest?("as of "+latest.slice(5,16).replace("T"," ")):"";
@@ -1221,7 +1263,7 @@
         note.textContent="Mirror view, live from the broker. Logging happens on the Claude dashboard.";
         setInterval(async function(){
           try{var r1=await fetch("open.json",{cache:"no-store"}); if(r1.ok){openPos=(await r1.json())||[]; renderOpen();}}catch(e){}
-        },3000);
+        },2000);
         setInterval(async function(){
           try{
             var r2=await fetch("trades.json",{cache:"no-store"}); if(r2.ok)trades=(await r2.json())||[];
