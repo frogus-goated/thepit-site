@@ -387,6 +387,9 @@
   @media (min-width:940px){#main{grid-template-columns:repeat(2,minmax(0,1fr))}}
   .dir.ord{background:none;border:1px dashed rgba(238,200,98,.45);color:var(--gold)}
   .odist{font-family:var(--mono);font-variant-numeric:tabular-nums;font-weight:600;font-size:16px;color:var(--gold)}
+  .frow2 .ft.wit{background:rgba(61,224,168,.12);color:var(--win)}
+  .frow2 .ft.dep{background:rgba(238,200,98,.12);color:var(--gold)}
+  .frow2 .ft.own{background:rgba(166,174,192,.12);color:var(--ink-2)}
 </style>
 <div id="bgCandles" aria-hidden="true"></div>
 <div id="bgCandlesLit" aria-hidden="true"></div><div class="bgc cl2"></div><div class="bgc cl3"></div><div class="bgc cl4"></div><div class="bgc cl5"></div><div class="bgc cl6"></div><div class="bgc cl7"></div></div>
@@ -927,7 +930,7 @@
       var row=document.createElement("div");
       row.className="frow2"; row.tabIndex=0; row.setAttribute("role","button");
       var w=f.type==="withdraw";
-      row.innerHTML='<span class="ft '+(w?"wit":"dep")+'">'+(w?"WITHDRAW":(f.source==="profit"?"REINVEST":"DEPOSIT"))+'</span>'+
+      row.innerHTML='<span class="ft '+(w?"wit":(f.source==="profit"?"dep":"own"))+'">'+(w?"WITHDRAW":(f.source==="profit"?"REINVEST":"DEPOSIT"))+'</span>'+
         '<span class="fd">'+esc(dayOf(f.ts))+(f.notes?" · "+esc(f.notes):"")+'</span>'+
         '<span class="fa num">'+(w?"-":"+")+"$"+(f.amount||0).toLocaleString("en-US")+'</span>';
       var open=function(){showFlowDetail(f)};
