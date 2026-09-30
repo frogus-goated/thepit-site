@@ -46,9 +46,10 @@
   #ring .lv span{font-size:9px;letter-spacing:.14em;color:var(--ink-3);text-transform:uppercase}
   #hudR{flex:1;min-width:0}
   #rank{font-family:var(--display);font-weight:700;font-size:19px;letter-spacing:.03em}
-  #xprow{display:flex;justify-content:space-between;gap:8px;margin-top:8px;font-size:11px;color:var(--ink-3)}
-  #xpbar{height:8px;background:var(--line-soft);border-radius:99px;margin-top:5px;overflow:hidden}
-  #xpfill{height:100%;width:0%;background:linear-gradient(90deg,var(--gold),#FFD873);border-radius:99px;transition:width .6s cubic-bezier(.2,.8,.2,1)}
+  #rules{display:flex;gap:7px;margin-top:9px;flex-wrap:wrap}
+  .rule{font-family:var(--display);font-size:10px;font-weight:600;letter-spacing:.13em;text-transform:uppercase;border:1px solid var(--line);border-radius:7px;padding:5px 10px;color:var(--ink-3)}
+  .rule.ok{border-color:rgba(70,214,154,.4);background:var(--win-dim);color:var(--win)}
+  .rule.bad{border-color:rgba(255,122,92,.4);background:var(--loss-dim);color:var(--loss)}
   #hudchips{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
   .chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:99px;padding:4px 11px;font-size:12px;color:var(--ink-2)}
   .chip .num{font-weight:600;color:var(--ink)}
@@ -179,6 +180,8 @@
   #eqLegend i.l2{border-top:2px dashed var(--ink-3)}
   .fld label.chk{display:flex;align-items:center;gap:9px;font-size:13px;color:var(--ink-2);cursor:pointer;text-transform:none;letter-spacing:0;font-family:var(--body)}
   .fld label.chk input{accent-color:var(--gold);width:17px;height:17px;margin:0}
+  #ring .lv b{font-size:19px}
+  #ring .lv b:only-child{font-size:19px}
 </style>
 
 <div id="wrap">
@@ -194,15 +197,18 @@
         <circle id="ringArc" cx="43" cy="43" r="38" stroke="var(--gold)" stroke-width="6" fill="none"
                 stroke-linecap="round" stroke-dasharray="238.76" stroke-dashoffset="238.76"/>
       </svg>
-      <div class="lv"><b id="lvNum">1</b><span>level</span></div>
+      <div class="lv"><b id="bankPct">&ndash;</b><span>banked</span></div>
     </div>
     <div id="hudR">
-      <div id="rank">Rookie</div>
-      <div id="xpbar"><div id="xpfill"></div></div>
-      <div id="xprow"><span id="xpNow" class="num">0 XP</span><span id="xpNext" class="num"></span></div>
+      <div id="rank">The Pit</div>
+      <div id="rules">
+        <span class="rule" id="ruleProfit">In profit</span>
+        <span class="rule" id="ruleRR">RR 1:3</span>
+        <span class="rule" id="ruleBank">Bank often</span>
+      </div>
       <div id="hudchips">
         <span class="chip" id="chipDays"><svg class="ic" viewBox="0 0 24 24"><path d="M12 3c1 3-3 4-3 8a3 3 0 0 0 6 0c0-1.5-.8-2.5-.8-2.5S17 10 17 13a5 5 0 0 1-10 0c0-5 4-7 5-10z"/></svg><span class="num" id="daysV">0</span>&nbsp;day streak</span>
-        <span class="chip" id="chipWins"><svg class="ic" viewBox="0 0 24 24"><path d="M13 2 4 14h6l-1 8 9-12h-6l1-8z"/></svg><span class="num" id="winsV">0</span>&nbsp;win streak</span>
+        <span class="chip" id="chipBank"><span class="num" id="bankV">$0</span>&nbsp;banked</span>
         <span class="chip"><span class="num" id="tradesV">0</span>&nbsp;trades logged</span>
       </div>
     </div>
@@ -215,7 +221,7 @@
     <div class="tile"><div class="lbl">Win rate</div><div class="v num" id="tWr">&ndash;</div></div>
     <div class="tile"><div class="lbl">Profit factor</div><div class="v num" id="tPf">&ndash;</div></div>
     <div class="tile"><div class="lbl">Avg R</div><div class="v num" id="tR">&ndash;</div></div>
-    <div class="tile"><div class="lbl">Best trade</div><div class="v num" id="tBest">&ndash;</div></div>
+    <div class="tile"><div class="lbl">Last bank</div><div class="v num" id="tBest">&ndash;</div></div>
     <div class="tile"><div class="lbl">Green days</div><div class="v num" id="tGreen">&ndash;</div></div>
   </div>
 
@@ -345,41 +351,26 @@
   var esc=function(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})};
   var dayOf=function(ts){return String(ts||"").slice(0,10)};
 
-  /* ---------- gamification ---------- */
-  var RANKS=["Rookie","Scalper","Grinder","Operator","Sniper","Shark","Whale","Kingpin","Market Maker","Apex"];
-  function xpOf(list,days){
-    var xp=0;
-    list.forEach(function(t){
-      xp+=25;
-      if((t.pnl||0)>0) xp+=20;
-      if((t.r||0)>=2) xp+=30;
-      if(t.setup) xp+=5;
-    });
-    days.forEach(function(d){ if(d.pnl>0) xp+=40; });
-    return xp;
-  }
-  function levelOf(xp){
-    var lv=1, need=100, left=xp;
-    while(left>=need){ left-=need; lv++; need=100+(lv-1)*75; }
-    return {lv:lv, into:left, need:need};
-  }
+  /* ---------- the game = discipline, not volume ----------
+     Rewards banking profit and 1:3 RR. Nothing here rewards more
+     trades, bigger trades, or win streaks (owner's rule, 2026-09-30). */
   var BADGES=[
     {id:"first",  name:"First Blood",  ic:'<path d="M12 3s6 6.3 6 11a6 6 0 0 1-12 0c0-4.7 6-11 6-11z"/>',
       test:function(s){return s.n>=1}, hint:"log your first trade"},
-    {id:"run3",   name:"Hat Trick",    ic:'<path d="M13 2 4 14h6l-1 8 9-12h-6l1-8z"/>',
-      test:function(s){return s.maxWinStreak>=3}, hint:"3 wins in a row"},
-    {id:"sniper", name:"Sniper",       ic:'<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4"/>',
-      test:function(s){return s.maxR>=3}, hint:"one trade at 3R+"},
+    {id:"banker", name:"Banker",       ic:'<path d="M3 21h18M5 21V10M19 21V10M9 21v-7M15 21v-7M3 10l9-6 9 6"/>',
+      test:function(s){return s.wit>0}, hint:"first withdrawal banked"},
+    {id:"house",  name:"House Money",  ic:'<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6l8-3z"/><path d="M9 12l2 2 4-4"/>',
+      test:function(s){return s.own>0&&s.wit>=s.own}, hint:"withdraw more than you put in: risk is off the table"},
+    {id:"r3",     name:"Three To One", ic:'<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4"/>',
+      test:function(s){return s.maxR>=3}, hint:"hit your 1:3 on a logged R"},
     {id:"gweek",  name:"Green Week",   ic:'<path d="M4 20h16M6 20V10M12 20V4M18 20v-8"/>',
       test:function(s){return s.greenWeek}, hint:"5 green days in 7"},
     {id:"comeback",name:"Comeback",    ic:'<path d="M3 13a9 9 0 1 0 3-7L3 9"/><path d="M3 4v5h5"/>',
-      test:function(s){return s.comeback}, hint:"green day after a red day"},
-    {id:"discipline",name:"Discipline",ic:'<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6l8-3z"/><path d="M9 12l2 2 4-4"/>',
-      test:function(s){return s.tagged>=20}, hint:"20 trades with a setup tag"},
-    {id:"biggame",name:"Big Game",     ic:'<path d="M8 21h8M12 17v4M6 4h12v4a6 6 0 0 1-12 0V4z"/><path d="M6 6H3a3 3 0 0 0 3 4M18 6h3a3 3 0 0 1-3 4"/>',
-      test:function(s){return s.maxPnl>=1000}, hint:"one trade over $1,000"},
-    {id:"century",name:"Century",      ic:'<circle cx="12" cy="12" r="9"/><path d="M9 8v8M9 8c3 0 5 1.5 5 4s-2 4-5 4"/>',
-      test:function(s){return s.n>=100}, hint:"100 trades logged"}
+      test:function(s){return s.comeback}, hint:"green day right after a red one"},
+    {id:"tagged", name:"On Plan",      ic:'<path d="M4 4h16v4H4zM4 12h10M4 17h7"/>',
+      test:function(s){return s.tagged>=20}, hint:"20 trades tagged with a setup"},
+    {id:"x10",    name:"Ten X",        ic:'<path d="M8 21h8M12 17v4M6 4h12v4a6 6 0 0 1-12 0V4z"/><path d="M6 6H3a3 3 0 0 0 3 4M18 6h3a3 3 0 0 1-3 4"/>',
+      test:function(s){return s.own>0&&s.net>=10*s.own}, hint:"profit 10x your own stake"}
   ];
 
   /* ---------- derived stats ---------- */
@@ -424,28 +415,38 @@
       if(g>=5)s.greenWeek=true;
     }
     if(s.maxPnl===-Infinity)s.maxPnl=0;
-    s.dep=0; s.wit=0; s.rei=0;
+    s.dep=0; s.wit=0; s.rei=0; s.lastWitDay=null;
     fl.forEach(function(f){
-      if(f.type==="withdraw"){s.wit+=(f.amount||0)}
+      if(f.type==="withdraw"){s.wit+=(f.amount||0); var wd=dayOf(f.ts); if(!s.lastWitDay||wd>s.lastWitDay)s.lastWitDay=wd;}
       else {s.dep+=(f.amount||0); if(f.source==="profit")s.rei+=(f.amount||0);}
     });
+    var startB=(typeof settings.startBalance==="number"?settings.startBalance:0);
+    s.own=startB+s.dep-s.rei;
+    s.lastDay=days.length?days[days.length-1].day:null;
     return {list:list,fl:fl,days:days,tradeDays:tradeDays,s:s};
   }
 
   /* ---------- render ---------- */
   function render(){
     var d=derive(), s=d.s;
-    var xp=xpOf(d.list,d.tradeDays), L=levelOf(xp);
-    $("lvNum").textContent=L.lv;
-    $("rank").textContent=L.lv<=RANKS.length?RANKS[L.lv-1]:"Apex "+(L.lv-RANKS.length+1);
-    $("xpNow").textContent=xp.toLocaleString("en-US")+" XP";
-    $("xpNext").textContent=(L.need-L.into)+" to level "+(L.lv+1);
-    $("xpfill").style.width=Math.round(L.into/L.need*100)+"%";
-    var C=238.76; $("ringArc").setAttribute("stroke-dashoffset",String(C*(1-L.into/L.need)));
-    $("daysV").textContent=s.dayStreak; $("winsV").textContent=s.winStreak;
+    var frac=s.net>0?Math.min(1,s.wit/s.net):0;
+    $("bankPct").textContent=s.net>0?Math.round(frac*100)+"%":"–";
+    var C=238.76; $("ringArc").setAttribute("stroke-dashoffset",String(C*(1-frac)));
+    $("rank").textContent=(s.own>0&&s.wit>=s.own)?"House money":(s.net>0?"In profit":(s.n?"Under water":"The Pit"));
+    var rp=$("ruleProfit"); rp.className="rule "+(s.n?(s.net>0?"ok":"bad"):"");
+    var rr=$("ruleRR"), avg=s.rN?(s.rSum/s.rN):null;
+    rr.textContent=avg!=null?("RR 1:"+avg.toFixed(1)):"RR 1:3";
+    rr.className="rule "+(avg!=null?(avg>=3?"ok":(avg<1.5?"bad":"")):"");
+    var rb=$("ruleBank");
+    if(s.wit>0&&s.lastDay&&s.lastWitDay){
+      var gap=(new Date(s.lastDay+"T00:00:00Z")-new Date(s.lastWitDay+"T00:00:00Z"))/864e5;
+      rb.className="rule "+(gap<=7?"ok":"bad");
+    } else { rb.className="rule"+(s.n?" bad":""); }
+    $("daysV").textContent=s.dayStreak;
     $("tradesV").textContent=s.n;
     $("chipDays").classList.toggle("hot",s.dayStreak>=3);
-    $("chipWins").classList.toggle("hot",s.winStreak>=3);
+    $("bankV").textContent=fmtBal(s.wit);
+    $("chipBank").classList.toggle("hot",s.wit>0);
 
     var net=$("tNet"); net.textContent=s.n?fmt$(s.net):"$0";
     net.className="v num "+(s.net>0?"win":s.net<0?"loss":"");
@@ -456,8 +457,12 @@
     $("tWr").textContent=s.n?Math.round(s.wins/s.n*100)+"%":"–";
     $("tPf").textContent=s.gl>0?(s.gw/s.gl).toFixed(2):(s.gw>0?"∞":"–");
     $("tR").textContent=s.rN?((s.rSum/s.rN>=0?"+":"")+(s.rSum/s.rN).toFixed(2)+"R"):"–";
-    var best=$("tBest"); best.textContent=s.n?fmt$(s.maxPnl):"–";
-    best.className="v num "+(s.n&&s.maxPnl>0?"win":"");
+    var best=$("tBest");
+    if(s.lastWitDay&&s.lastDay){
+      var wgap=Math.round((new Date(s.lastDay+"T00:00:00Z")-new Date(s.lastWitDay+"T00:00:00Z"))/864e5);
+      best.textContent=wgap<=0?"today":wgap+"d ago";
+      best.className="v num "+(wgap<=7?"win":"loss");
+    } else { best.textContent="–"; best.className="v num"; }
     $("tGreen").textContent=d.tradeDays.length?(s.greenDays+" / "+d.tradeDays.length):"–";
 
     renderCapital(d); renderEquity(d); renderDaily(d); renderBadges(s); renderList(d.list);
@@ -708,7 +713,7 @@
     db.collection("flows").doc(id).set(f).then(function(){
       btn.disabled=false; sheet("Flow",false);
       $("wAmt").value="";$("wNote").value="";
-      toast((flowType==="withdraw"?"Withdrawal":"Deposit")+" of "+fmtBal(amt)+" logged.");
+      toast(flowType==="withdraw"?("<b>Banked "+fmtBal(amt)+".</b> That is the game."):("Deposit "+fmtBal(amt)+" logged."));
     }).catch(function(){btn.disabled=false;toast("Save failed.")});
   });
 
@@ -739,8 +744,7 @@
     db.collection("trades").doc(id).set(t).then(function(){
       btn.disabled=false; sheet("Log",false); $("fLog").reset();
       dir="long";$("fLong").setAttribute("aria-pressed","true");$("fShort").setAttribute("aria-pressed","false");
-      var gained=25+(pnl>0?20:0)+((r||0)>=2?30:0)+(t.setup?5:0);
-      toast((pnl>0?"Banked ":"Logged ")+esc(sym)+". <b>+"+gained+" XP</b>");
+      toast("Logged "+esc(sym)+" "+fmt$(pnl)+".");
     }).catch(function(err){
       btn.disabled=false;
       toast(err&&err.code==="invalid_argument"?"Read-only view. Trade not saved.":"Save failed. Try again.");
