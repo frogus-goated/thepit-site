@@ -693,7 +693,9 @@
     $("tTrades").textContent=s.n;
     $("tWr").textContent=s.n?Math.round(s.wins/s.n*100)+"%":"–";
     $("tPf").textContent=s.gl>0?(s.gw/s.gl).toFixed(2):(s.gw>0?"∞":"–");
-    $("tR").textContent=s.rN?((s.rSum/s.rN>=0?"+":"")+(s.rSum/s.rN).toFixed(2)+"R"):"–";
+    var rlT=(typeof settings.riskPerLot==="number"&&settings.riskPerLot>0)?settings.riskPerLot:1000;
+    $("tR").textContent=s.rN?(fmt$(s.rSum/s.rN*rlT)+"/lot"):"–";
+    $("tR").className="v num "+(s.rN&&s.rSum>0?"win":s.rN&&s.rSum<0?"loss":"");
     var best=$("tBest");
     if(s.lastWitDay&&s.lastDay){
       var wgap=Math.round((new Date(s.lastDay+"T00:00:00Z")-new Date(s.lastWitDay+"T00:00:00Z"))/864e5);
@@ -895,7 +897,7 @@
     var bits=[];
     if(s.net>0)bits.push("banked "+Math.round(Math.min(1,s.wit/s.net)*100)+"% of profit");
     if(s.n)bits.push(s.wins+"W / "+s.losses+"L");
-    if(s.rN)bits.push("avg RR 1:"+(s.rSum/s.rN).toFixed(1));
+    if(s.rN)bits.push("avg trade "+fmt$(s.rSum/s.rN*((typeof settings.riskPerLot==="number"&&settings.riskPerLot>0)?settings.riskPerLot:1000))+" per lot");
     $("sumSub").textContent=bits.join(" · ");
     var host=$("flist"); host.innerHTML="";
     d.fl.slice(-5).reverse().forEach(function(f){
