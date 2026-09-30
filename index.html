@@ -188,14 +188,15 @@
   #ring .lv b:only-child{font-size:19px}
   #openCard{border-color:rgba(238,200,98,.35)}
   .tpsl{font-size:11px;color:var(--ink-3)}
-  #vaultCard{border-color:rgba(238,200,98,.35)}
-  #vbar{height:10px;background:var(--line-soft);border-radius:99px;overflow:hidden;margin-top:14px}
+  #heroRow{display:flex;gap:24px;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;margin-top:14px}
+  #heroL{flex:1 1 200px;min-width:0}
+  #heroV{flex:0 1 300px;min-width:230px}
+  #vpct{font-family:var(--mono);font-weight:600;font-size:24px;color:var(--gold);margin-top:2px}
+  #vbar{height:6px;background:var(--line-soft);border-radius:99px;overflow:hidden;margin-top:8px}
   #vfill{height:100%;width:0%;background:linear-gradient(90deg,#8F6D24,var(--gold) 55%,#F7E9BE);border-radius:99px;transition:width .6s cubic-bezier(.2,.8,.2,1)}
-  #vpctRow{margin-top:9px;font-size:13px;color:var(--ink-2)}
-  #vpct{font-family:var(--mono);font-weight:600;font-size:17px;color:var(--gold)}
-  #vaddr{display:flex;gap:8px;align-items:center;margin-top:11px}
-  #vaddr code{flex:1;min-width:0;font-family:var(--mono);font-size:11px;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 10px;overflow-wrap:anywhere;color:var(--ink-2)}
-  #vaddr button{background:none;border:1px solid var(--line);border-radius:8px;color:var(--ink-2);padding:8px 12px;cursor:pointer;font-family:var(--display);font-size:10px;font-weight:600;letter-spacing:.12em}
+  #vaddr{display:flex;gap:7px;align-items:center;margin-top:9px}
+  #vaddr code{flex:1;min-width:0;font-family:var(--mono);font-size:10px;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:7px 9px;overflow-wrap:anywhere;color:var(--ink-2)}
+  #vaddr button{background:none;border:1px solid var(--line);border-radius:8px;color:var(--ink-2);padding:6px 10px;cursor:pointer;font-family:var(--display);font-size:10px;font-weight:600;letter-spacing:.12em}
   #vaddr button:hover{color:var(--gold);border-color:rgba(238,200,98,.45)}
   #sumCard{border-color:rgba(212,187,135,.30);box-shadow:inset 0 1px 0 rgba(238,214,150,.07);margin-top:6px}
   #sumBal{font-size:36px;font-weight:600;line-height:1.15}
@@ -222,9 +223,19 @@
 
   <div class="card" id="sumCard">
     <h2>Account <button id="btnFlow" type="button" style="margin-left:auto;background:none;border:1px solid var(--line);border-radius:8px;color:var(--ink-2);padding:5px 10px;cursor:pointer;font-family:var(--display);font-size:10px;font-weight:600;letter-spacing:.14em">+ MONEY</button></h2>
-    <div class="lbl" style="margin-top:14px">Profit</div>
-    <div id="sumBal" class="num">$0</div>
-    <div id="sumSub"></div>
+    <div id="heroRow">
+      <div id="heroL">
+        <div class="lbl">Profit</div>
+        <div id="sumBal" class="num">$0</div>
+        <div id="sumSub"></div>
+      </div>
+      <div id="heroV">
+        <div class="lbl">BTC vault</div>
+        <div id="vpct" class="num">&ndash;</div>
+        <div id="vbar"><div id="vfill"></div></div>
+        <div id="vaddr"><code id="vaddrTxt">bc1q6947reqr6weujqra7s8ahrq06tz9hph3lgh8l6</code><button id="vcopy" type="button">COPY</button></div>
+      </div>
+    </div>
     <div id="capgrid">
       <div class="cap"><div class="lbl">Invested</div><div class="cv num" id="cDep">$0</div></div>
       <div class="cap"><div class="lbl">Balance</div><div class="cv num" id="cProf">$0</div></div>
@@ -253,14 +264,6 @@
     <div class="tile"><div class="lbl">Last bank</div><div class="v num" id="tBest">&ndash;</div></div>
     <div class="tile"><div class="lbl">Green days</div><div class="v num" id="tGreen">&ndash;</div></div>
     <div class="tile"><div class="lbl">Trades</div><div class="v num" id="tTrades">0</div></div>
-  </div>
-
-  <div class="card" id="vaultCard">
-    <h2>Bitcoin vault <span class="num">goal: one full bitcoin</span></h2>
-    <div id="vbar"><div id="vfill"></div></div>
-    <div id="vpctRow"><span class="num" id="vpct">&ndash;</span> of 1 BTC saved</div>
-    <div id="vaddr"><code id="vaddrTxt">bc1q6947reqr6weujqra7s8ahrq06tz9hph3lgh8l6</code><button id="vcopy" type="button">COPY</button></div>
-    <div class="tpsl" style="margin-top:8px">Send BTC only, native segwit. Deposits only, this number never goes down.</div>
   </div>
 
   <div class="card">
