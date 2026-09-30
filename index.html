@@ -753,15 +753,24 @@
       checks.push({st:big===0?"ok":(big===1?"mid":"bad"), l:"Cap the losers",
         t:big+" loss"+(big===1?"":"es")+" bigger than your average winner in the last 15"+(big>1?" · this is where the profit leaks":"")});
     }
-    var fast=0;
-    for(var i=1;i<recent.length;i++){
-      if((recent[i-1].pnl||0)<0){
-        var dt=(new Date(recent[i].openTs||recent[i].ts)-new Date(recent[i-1].ts))/6e4;
-        if(dt>=0&&dt<=5)fast++;
-      }
-    }
+    /* revenge = re-entering the same symbol+direction within 60 min of closing a loss on it,
+       or any entry within 5 min of any loss (tilt). Owner's definition, 2026-10-01. */
+    var fast=0, revCost=0;
+    recent.forEach(function(t){
+      var openT=new Date(t.openTs||t.ts);
+      var hit=recent.some(function(L){
+        if((L.pnl||0)>=0||L===t)return false;
+        var gap=(openT-new Date(L.ts))/6e4;
+        if(gap<0)return false;
+        if(gap<=5)return true;
+        return gap<=60&&L.symbol===t.symbol&&L.dir===t.dir;
+      });
+      if(hit){fast++;revCost+=(t.pnl||0);}
+    });
     checks.push({st:fast===0?"ok":(fast===1?"mid":"bad"), l:"No revenge entries",
-      t:fast+" trade"+(fast===1?"":"s")+" fired within 5 min of taking a loss"+(fast>1?" · step away after a red one":"")});
+      t:fast===0
+        ? "no re-entries into a setup you just lost on"
+        : fast+" re-entr"+(fast===1?"y":"ies")+" into a setup you just lost on (last 15)"+(revCost<0?" · they cost "+fmt$(revCost):" · they made "+fmt$(revCost))});
     var okN=checks.filter(function(c){return c.st==="ok"}).length;
     $("ruleScore").textContent=okN+" of "+checks.length+" on plan";
     checks.forEach(function(c){
