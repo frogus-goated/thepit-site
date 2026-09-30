@@ -183,8 +183,30 @@
   #ring .lv b{font-size:19px}
   #ring .lv b:only-child{font-size:19px}
   #openCard{border-color:rgba(238,200,98,.35)}
-  .nosl{font-family:var(--display);font-size:9px;font-weight:600;letter-spacing:.12em;padding:3px 7px;border-radius:6px;background:var(--loss-dim);color:var(--loss);border:1px solid rgba(255,122,92,.4)}
   .tpsl{font-size:11px;color:var(--ink-3)}
+  #vaultCard{border-color:rgba(238,200,98,.35)}
+  #vbar{height:10px;background:var(--line-soft);border-radius:99px;overflow:hidden;margin-top:14px}
+  #vfill{height:100%;width:0%;background:linear-gradient(90deg,#8F6D24,var(--gold) 55%,#F7E9BE);border-radius:99px;transition:width .6s cubic-bezier(.2,.8,.2,1)}
+  #vpctRow{margin-top:9px;font-size:13px;color:var(--ink-2)}
+  #vpct{font-family:var(--mono);font-weight:600;font-size:17px;color:var(--gold)}
+  #vaddr{display:flex;gap:8px;align-items:center;margin-top:11px}
+  #vaddr code{flex:1;min-width:0;font-family:var(--mono);font-size:11px;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 10px;overflow-wrap:anywhere;color:var(--ink-2)}
+  #vaddr button{background:none;border:1px solid var(--line);border-radius:8px;color:var(--ink-2);padding:8px 12px;cursor:pointer;font-family:var(--display);font-size:10px;font-weight:600;letter-spacing:.12em}
+  #vaddr button:hover{color:var(--gold);border-color:rgba(238,200,98,.45)}
+  #sumCard{border-color:rgba(212,187,135,.30);box-shadow:inset 0 1px 0 rgba(238,214,150,.07);margin-top:6px}
+  #sumBal{font-size:36px;font-weight:600;line-height:1.15}
+  #sumBal.loss{color:var(--loss)}
+  #sumSub{font-size:12px;color:var(--ink-3);margin-top:4px}
+  #capgrid .cap{border:0;padding:10px 0 0 0}
+  .chk2{display:flex;align-items:flex-start;gap:11px;padding:10px 2px;border-bottom:1px solid var(--line-soft)}
+  .chk2:last-child{border-bottom:0}
+  .chk2 .dot{width:8px;height:8px;border-radius:50%;background:var(--ink-3);margin-top:5px;flex:none}
+  .chk2 .dot.ok{background:var(--win)}
+  .chk2 .dot.mid{background:var(--gold)}
+  .chk2 .dot.bad{background:var(--loss)}
+  .chk2 .cl{font-size:13px;font-weight:600}
+  .chk2 .ct{font-size:12px;color:var(--ink-3);margin-top:1px}
+  #rchecks{margin-top:6px}
 </style>
 
 <div id="wrap">
@@ -193,28 +215,23 @@
     <button id="btnSettings" type="button">Setup</button>
   </div>
 
-  <div id="hud">
-    <div id="ring">
-      <svg viewBox="0 0 86 86" aria-hidden="true">
-        <circle cx="43" cy="43" r="38" stroke="var(--line)" stroke-width="6" fill="none"/>
-        <circle id="ringArc" cx="43" cy="43" r="38" stroke="var(--gold)" stroke-width="6" fill="none"
-                stroke-linecap="round" stroke-dasharray="238.76" stroke-dashoffset="238.76"/>
-      </svg>
-      <div class="lv"><b id="bankPct">&ndash;</b><span>banked</span></div>
+  <div class="card" id="sumCard">
+    <h2>Account <button id="btnFlow" type="button" style="margin-left:auto;background:none;border:1px solid var(--line);border-radius:8px;color:var(--ink-2);padding:5px 10px;cursor:pointer;font-family:var(--display);font-size:10px;font-weight:600;letter-spacing:.14em">+ MONEY</button></h2>
+    <div class="lbl" style="margin-top:14px">Balance</div>
+    <div id="sumBal" class="num">$0</div>
+    <div id="sumSub"></div>
+    <div id="capgrid">
+      <div class="cap"><div class="lbl">Invested</div><div class="cv num" id="cDep">$0</div></div>
+      <div class="cap"><div class="lbl">Profit</div><div class="cv num" id="cProf">$0</div></div>
+      <div class="cap"><div class="lbl">Withdrawn</div><div class="cv num" id="cWit">$0</div></div>
+      <div class="cap"><div class="lbl">Reinvested</div><div class="cv num" id="cRei">$0</div></div>
     </div>
-    <div id="hudR">
-      <div id="rank">The Pit</div>
-      <div id="rules">
-        <span class="rule" id="ruleProfit">In profit</span>
-        <span class="rule" id="ruleRR">RR 1:3</span>
-        <span class="rule" id="ruleBank">Bank often</span>
-      </div>
-      <div id="hudchips">
-        <span class="chip" id="chipDays"><svg class="ic" viewBox="0 0 24 24"><path d="M12 3c1 3-3 4-3 8a3 3 0 0 0 6 0c0-1.5-.8-2.5-.8-2.5S17 10 17 13a5 5 0 0 1-10 0c0-5 4-7 5-10z"/></svg><span class="num" id="daysV">0</span>&nbsp;day streak</span>
-        <span class="chip" id="chipBank"><span class="num" id="bankV">$0</span>&nbsp;banked</span>
-        <span class="chip"><span class="num" id="tradesV">0</span>&nbsp;trades logged</span>
-      </div>
-    </div>
+    <div id="flist"></div>
+  </div>
+
+  <div class="card" id="ruleCard">
+    <h2>Rule check <span class="num" id="ruleScore"></span></h2>
+    <div id="rchecks"></div>
   </div>
 
   <div id="offnote">Data layer not connected in this view. Open the dashboard on claude.ai while signed in to load and log trades.</div>
@@ -225,23 +242,20 @@
   </div>
 
   <div id="tiles">
-    <div class="tile big"><div class="lbl">Net P&amp;L</div><div class="v num" id="tNet">$0</div><div class="sub" id="tNetSub">no trades yet</div></div>
     <div class="tile"><div class="lbl">Win rate</div><div class="v num" id="tWr">&ndash;</div></div>
     <div class="tile"><div class="lbl">Profit factor</div><div class="v num" id="tPf">&ndash;</div></div>
     <div class="tile"><div class="lbl">Avg R</div><div class="v num" id="tR">&ndash;</div></div>
     <div class="tile"><div class="lbl">Last bank</div><div class="v num" id="tBest">&ndash;</div></div>
     <div class="tile"><div class="lbl">Green days</div><div class="v num" id="tGreen">&ndash;</div></div>
+    <div class="tile"><div class="lbl">Trades</div><div class="v num" id="tTrades">0</div></div>
   </div>
 
-  <div class="card">
-    <h2>Capital <span class="num" id="capNote"></span><button id="btnFlow" type="button" style="margin-left:auto;background:none;border:1px solid var(--line);border-radius:8px;color:var(--ink-2);padding:5px 10px;cursor:pointer;font-family:var(--display);font-size:10px;font-weight:600;letter-spacing:.14em">+ MONEY</button></h2>
-    <div id="capgrid">
-      <div class="cap"><div class="lbl">Invested</div><div class="cv num" id="cDep">$0</div></div>
-      <div class="cap"><div class="lbl">Profit</div><div class="cv num" id="cProf">$0</div></div>
-      <div class="cap"><div class="lbl">Withdrawn</div><div class="cv num" id="cWit">$0</div></div>
-      <div class="cap"><div class="lbl">Reinvested</div><div class="cv num" id="cRei">$0</div></div>
-    </div>
-    <div id="flist"></div>
+  <div class="card" id="vaultCard">
+    <h2>Bitcoin vault <span class="num">goal: one full bitcoin</span></h2>
+    <div id="vbar"><div id="vfill"></div></div>
+    <div id="vpctRow"><span class="num" id="vpct">&ndash;</span> of 1 BTC saved</div>
+    <div id="vaddr"><code id="vaddrTxt">bc1q6947reqr6weujqra7s8ahrq06tz9hph3lgh8l6</code><button id="vcopy" type="button">COPY</button></div>
+    <div class="tpsl" style="margin-top:8px">Send BTC only, native segwit. Deposits only, this number never goes down.</div>
   </div>
 
   <div class="card">
@@ -255,11 +269,6 @@
   <div class="card">
     <h2>Daily P&amp;L <span class="num" id="dayRange"></span></h2>
     <div class="chartbox" id="dayBox"></div>
-  </div>
-
-  <div class="card">
-    <h2>Badges <span class="num" id="badgeCount"></span></h2>
-    <div id="badges"></div>
   </div>
 
   <div class="card">
@@ -359,27 +368,8 @@
   var esc=function(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})};
   var dayOf=function(ts){return String(ts||"").slice(0,10)};
 
-  /* ---------- the game = discipline, not volume ----------
-     Rewards banking profit and 1:3 RR. Nothing here rewards more
-     trades, bigger trades, or win streaks (owner's rule, 2026-09-30). */
-  var BADGES=[
-    {id:"first",  name:"First Blood",  ic:'<path d="M12 3s6 6.3 6 11a6 6 0 0 1-12 0c0-4.7 6-11 6-11z"/>',
-      test:function(s){return s.n>=1}, hint:"log your first trade"},
-    {id:"banker", name:"Banker",       ic:'<path d="M3 21h18M5 21V10M19 21V10M9 21v-7M15 21v-7M3 10l9-6 9 6"/>',
-      test:function(s){return s.wit>0}, hint:"first withdrawal banked"},
-    {id:"house",  name:"House Money",  ic:'<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6l8-3z"/><path d="M9 12l2 2 4-4"/>',
-      test:function(s){return s.own>0&&s.wit>=s.own}, hint:"withdraw more than you put in: risk is off the table"},
-    {id:"r3",     name:"Three To One", ic:'<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4"/>',
-      test:function(s){return s.maxR>=3}, hint:"hit your 1:3 on a logged R"},
-    {id:"gweek",  name:"Green Week",   ic:'<path d="M4 20h16M6 20V10M12 20V4M18 20v-8"/>',
-      test:function(s){return s.greenWeek}, hint:"5 green days in 7"},
-    {id:"comeback",name:"Comeback",    ic:'<path d="M3 13a9 9 0 1 0 3-7L3 9"/><path d="M3 4v5h5"/>',
-      test:function(s){return s.comeback}, hint:"green day right after a red one"},
-    {id:"tagged", name:"On Plan",      ic:'<path d="M4 4h16v4H4zM4 12h10M4 17h7"/>',
-      test:function(s){return s.tagged>=20}, hint:"20 trades tagged with a setup"},
-    {id:"x10",    name:"Ten X",        ic:'<path d="M8 21h8M12 17v4M6 4h12v4a6 6 0 0 1-12 0V4z"/><path d="M6 6H3a3 3 0 0 0 3 4M18 6h3a3 3 0 0 1-3 4"/>',
-      test:function(s){return s.own>0&&s.net>=10*s.own}, hint:"profit 10x your own stake"}
-  ];
+  /* The game = discipline, not volume. Nothing on this page rewards
+     more trades, bigger trades, or win streaks (owner's rule, 2026-09-30). */
 
   /* ---------- derived stats ---------- */
   function derive(){
@@ -437,31 +427,7 @@
   /* ---------- render ---------- */
   function render(){
     var d=derive(), s=d.s;
-    var frac=s.net>0?Math.min(1,s.wit/s.net):0;
-    $("bankPct").textContent=s.net>0?Math.round(frac*100)+"%":"–";
-    var C=238.76; $("ringArc").setAttribute("stroke-dashoffset",String(C*(1-frac)));
-    $("rank").textContent=(s.own>0&&s.wit>=s.own)?"House money":(s.net>0?"In profit":(s.n?"Under water":"The Pit"));
-    var rp=$("ruleProfit"); rp.className="rule "+(s.n?(s.net>0?"ok":"bad"):"");
-    var rr=$("ruleRR"), avg=s.rN?(s.rSum/s.rN):null;
-    rr.textContent=avg!=null?("RR 1:"+avg.toFixed(1)):"RR 1:3";
-    rr.className="rule "+(avg!=null?(avg>=3?"ok":(avg<1.5?"bad":"")):"");
-    var rb=$("ruleBank");
-    if(s.wit>0&&s.lastDay&&s.lastWitDay){
-      var gap=(new Date(s.lastDay+"T00:00:00Z")-new Date(s.lastWitDay+"T00:00:00Z"))/864e5;
-      rb.className="rule "+(gap<=7?"ok":"bad");
-    } else { rb.className="rule"+(s.n?" bad":""); }
-    $("daysV").textContent=s.dayStreak;
-    $("tradesV").textContent=s.n;
-    $("chipDays").classList.toggle("hot",s.dayStreak>=3);
-    $("bankV").textContent=fmtBal(s.wit);
-    $("chipBank").classList.toggle("hot",s.wit>0);
-
-    var net=$("tNet"); net.textContent=s.n?fmt$(s.net):"$0";
-    net.className="v num "+(s.net>0?"win":s.net<0?"loss":"");
-    var start=(typeof settings.startBalance==="number"?settings.startBalance:0);
-    var balNow=start+s.dep-s.wit+s.net;
-    var hasCap=(start+s.dep+s.wit)>0;
-    $("tNetSub").textContent=s.n?(hasCap?("balance "+fmtBal(balNow)+" · "+s.wins+"W / "+s.losses+"L"):s.wins+"W / "+s.losses+"L"):"no trades yet";
+    $("tTrades").textContent=s.n;
     $("tWr").textContent=s.n?Math.round(s.wins/s.n*100)+"%":"–";
     $("tPf").textContent=s.gl>0?(s.gw/s.gl).toFixed(2):(s.gw>0?"∞":"–");
     $("tR").textContent=s.rN?((s.rSum/s.rN>=0?"+":"")+(s.rSum/s.rN).toFixed(2)+"R"):"–";
@@ -473,7 +439,51 @@
     } else { best.textContent="–"; best.className="v num"; }
     $("tGreen").textContent=d.tradeDays.length?(s.greenDays+" / "+d.tradeDays.length):"–";
 
-    renderCapital(d); renderEquity(d); renderDaily(d); renderBadges(s); renderList(d.list); renderOpen();
+    renderCapital(d); renderRules(d); renderEquity(d); renderDaily(d); renderList(d.list); renderOpen();
+  }
+
+  /* Honest audit of the owner's own rules, computed from the last 15 trades.
+     Plain sentences, no score-chasing. Rules: brain/areas/playbook/rules.md */
+  function renderRules(d){
+    var s=d.s, host=$("rchecks"); host.innerHTML="";
+    if(!s.n){$("ruleCard").hidden=true;return}
+    $("ruleCard").hidden=false;
+    var recent=d.list.slice(-15);
+    var rw=recent.filter(function(t){return (t.pnl||0)>0});
+    var rl=recent.filter(function(t){return (t.pnl||0)<0});
+    var aw=rw.length?rw.reduce(function(a,t){return a+t.pnl},0)/rw.length:0;
+    var al=rl.length?-rl.reduce(function(a,t){return a+t.pnl},0)/rl.length:0;
+    var checks=[];
+    checks.push({st:s.net>0?"ok":"bad", l:"Stay in profit",
+      t:fmt$(s.net)+" all time"+(s.net>0?"":" · priority one: get back over zero")});
+    var pct=s.net>0?Math.round(Math.min(1,s.wit/s.net)*100):0;
+    var gap=(s.lastWitDay&&s.lastDay)?Math.round((new Date(s.lastDay+"T00:00:00Z")-new Date(s.lastWitDay+"T00:00:00Z"))/864e5):null;
+    checks.push({st:(pct>=50&&gap!=null&&gap<=7)?"ok":(pct>=25?"mid":"bad"), l:"Bank often",
+      t:pct+"% of profit banked"+(gap!=null?(" · last bank "+(gap<=0?"today":gap+"d ago")):" · nothing banked yet")});
+    if(al>0&&aw>0){
+      var ratio=aw/al;
+      checks.push({st:ratio>=2.5?"ok":(ratio>=1.2?"mid":"bad"), l:"Win 3x what you lose",
+        t:"last 15: avg win "+fmt$(aw)+" vs avg loss "+fmt$(-al)+" · that is "+ratio.toFixed(1)+":1, goal 3:1"+(ratio<1.2?" · losers are outgrowing winners, take the 3:1 and leave":"")});
+      var big=rl.filter(function(t){return -t.pnl>aw}).length;
+      checks.push({st:big===0?"ok":(big===1?"mid":"bad"), l:"Cap the losers",
+        t:big+" loss"+(big===1?"":"es")+" bigger than your average winner in the last 15"+(big>1?" · this is where the profit leaks":"")});
+    }
+    var fast=0;
+    for(var i=1;i<recent.length;i++){
+      if((recent[i-1].pnl||0)<0){
+        var dt=(new Date(recent[i].ts)-new Date(recent[i-1].ts))/6e4;
+        if(dt>=0&&dt<=5)fast++;
+      }
+    }
+    checks.push({st:fast===0?"ok":(fast===1?"mid":"bad"), l:"No revenge entries",
+      t:fast+" trade"+(fast===1?"":"s")+" fired within 5 min of taking a loss"+(fast>1?" · step away after a red one":"")});
+    var okN=checks.filter(function(c){return c.st==="ok"}).length;
+    $("ruleScore").textContent=okN+" of "+checks.length+" on plan";
+    checks.forEach(function(c){
+      var el=document.createElement("div"); el.className="chk2";
+      el.innerHTML='<span class="dot '+c.st+'"></span><div><div class="cl">'+esc(c.l)+'</div><div class="ct">'+esc(c.t)+'</div></div>';
+      host.appendChild(el);
+    });
   }
 
   function renderOpen(){
@@ -491,8 +501,7 @@
         (p.dir==="short"?'<path d="M12 5v14M6 13l6 6 6-6"/>':'<path d="M12 19V5M6 11l6-6 6 6"/>')+'</svg></div>'+
         '<div><div class="sym">'+esc((p.symbol||"?").toUpperCase())+' <span class="tpsl">x'+esc(p.size!=null?p.size:"?")+'</span></div>'+
         '<div class="meta num">'+(p.entry!=null?p.entry:"?")+' → '+(p.mark!=null?p.mark:"?")+
-        ' &nbsp; <span class="tpsl">TP '+(p.tp!=null?p.tp:"–")+' · SL '+(p.sl!=null?p.sl:"")+'</span> '+
-        (p.sl==null?'<span class="nosl">NO SL</span>':"")+'</div></div>'+
+        ' &nbsp; <span class="tpsl">TP '+(p.tp!=null?p.tp:"–")+' · SL '+(p.sl!=null?p.sl:"–")+'</span></div></div>'+
         '<div class="pnl"><div class="num '+(f>0?"win":f<0?"loss":"")+'">'+(f!=null?fmt$(f):"–")+'</div>'+
         '<div class="r">floating</div></div>';
       host.appendChild(row);
@@ -512,7 +521,14 @@
     $("cWit").textContent=fmtBal(s.wit);
     var re=$("cRei"); re.textContent=fmtBal(s.rei);
     re.className="cv num "+(s.rei>0?"win":"");
-    $("capNote").textContent=(start+s.dep+s.wit)?("balance "+fmtBal(start+s.dep-s.wit+s.net)):"";
+    var balNow=start+s.dep-s.wit+s.net;
+    var sb=$("sumBal"); sb.textContent=fmtBal(balNow);
+    sb.className="num "+(balNow<0?"loss":"");
+    var bits=[];
+    if(s.net>0)bits.push("banked "+Math.round(Math.min(1,s.wit/s.net)*100)+"% of profit");
+    if(s.n)bits.push(s.wins+"W / "+s.losses+"L");
+    if(s.rN)bits.push("avg RR 1:"+(s.rSum/s.rN).toFixed(1));
+    $("sumSub").textContent=bits.join(" · ");
     var host=$("flist"); host.innerHTML="";
     d.fl.slice(-5).reverse().forEach(function(f){
       var row=document.createElement("div");
@@ -527,20 +543,6 @@
       host.appendChild(row);
     });
     if(!d.fl.length){host.innerHTML='<div class="empty" style="padding:12px 4px">Track your money: hit + MONEY when you deposit or withdraw.</div>'}
-  }
-
-  function renderBadges(s){
-    var host=$("badges"); host.innerHTML="";
-    var on=0;
-    BADGES.forEach(function(b){
-      var ok=b.test(s); if(ok)on++;
-      var el=document.createElement("div");
-      el.className="badge"+(ok?" on":"");
-      el.title=b.hint;
-      el.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true">'+b.ic+'</svg><div class="bn">'+b.name+'</div>';
-      host.appendChild(el);
-    });
-    $("badgeCount").textContent=on+" / "+BADGES.length;
   }
 
   function renderList(list){
@@ -745,7 +747,7 @@
     db.collection("flows").doc(id).set(f).then(function(){
       btn.disabled=false; sheet("Flow",false);
       $("wAmt").value="";$("wNote").value="";
-      toast(flowType==="withdraw"?("<b>Banked "+fmtBal(amt)+".</b> That is the game."):("Deposit "+fmtBal(amt)+" logged."));
+      toast(flowType==="withdraw"?("Banked "+fmtBal(amt)+"."):("Deposit "+fmtBal(amt)+" logged."));
     }).catch(function(){btn.disabled=false;toast("Save failed.")});
   });
 
@@ -824,6 +826,34 @@
       .catch(function(){toast("Delete failed.")});
   });
 
+  /* ---------- bitcoin vault (receive-only savings, goal 1 BTC) ---------- */
+  var SAVINGS_ADDR="bc1q6947reqr6weujqra7s8ahrq06tz9hph3lgh8l6";
+  var savingsLive=false;
+  function setSats(v){
+    if(typeof v!=="number")return;
+    var pct=v/1e8*100;
+    $("vpct").textContent=pct.toFixed(2)+"%";
+    $("vfill").style.width=Math.min(100,pct)+"%";
+  }
+  (async function(){
+    try{
+      var r=await fetch("https://mempool.space/api/address/"+SAVINGS_ADDR);
+      if(r.ok){
+        var j=await r.json();
+        savingsLive=true;
+        setSats((j.chain_stats.funded_txo_sum-j.chain_stats.spent_txo_sum)+(j.mempool_stats.funded_txo_sum-j.mempool_stats.spent_txo_sum));
+      }
+    }catch(e){}
+  })();
+  $("vcopy").addEventListener("click",function(){
+    var b=this;
+    navigator.clipboard.writeText(SAVINGS_ADDR).then(function(){
+      b.textContent="COPIED"; setTimeout(function(){b.textContent="COPY"},1500);
+    }).catch(function(){
+      try{var rg=document.createRange();rg.selectNodeContents($("vaddrTxt"));var sl=getSelection();sl.removeAllRanges();sl.addRange(rg);}catch(e){}
+    });
+  });
+
   /* ---------- resize ---------- */
   var rT=null;
   window.addEventListener("resize",function(){clearTimeout(rT);rT=setTimeout(render,180)});
@@ -849,7 +879,8 @@
       }catch(e){}
       try{
         var rm=await fetch("meta.json",{cache:"no-store"});
-        if(rm.ok){ var mm=await rm.json(); settings=(mm&&mm.settings)||{}; upd=mm&&mm.updated; }
+        if(rm.ok){ var mm=await rm.json(); settings=(mm&&mm.settings)||{}; upd=mm&&mm.updated;
+          if(!savingsLive&&mm&&mm.savings&&typeof mm.savings.sats==="number")setSats(mm.savings.sats); }
       }catch(e){}
       var note=$("offnote"); note.style.display="block";
       if(mirror){
@@ -880,6 +911,9 @@
     unsubS=db.doc("meta/settings").onSnapshot(function(snap){
       settings=snap.exists?Object.assign({},snap.data()):{};
       render();
+    },function(){});
+    db.doc("meta/savings").onSnapshot(function(snap){
+      if(!savingsLive&&snap.exists)setSats(snap.data().sats||0);
     },function(){});
   })();
 })();
