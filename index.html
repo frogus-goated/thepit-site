@@ -591,7 +591,7 @@
   var db=null, unsubT=null, unsubS=null, unsubF=null, unsubO=null;
   var trades=[], flows=[], settings={}, openPos=[], orders=[];
   var dir="long", flowType="deposit", detailId=null, detailKind="trade", deleteArmed=false;
-  var dailyRange=30, logLimit=25, countsDone=false, prevNet=null, seenTradeIds=null, openDays={};
+  var dailyRange=15, logLimit=25, countsDone=false, prevNet=null, seenTradeIds=null, openDays={};
 
   /* count the key figures up from 0 on first load */
   function animateNums(){
