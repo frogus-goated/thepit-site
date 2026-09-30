@@ -245,7 +245,7 @@
   #vaddr{margin-top:12px;width:100%}
   #vaddr code{text-align:center}
   #flist,#rchecks{background:rgba(0,0,0,.30);border-color:rgba(255,255,255,.06);border-radius:14px}
-  #openCard{background:rgba(61,224,168,.05);border-color:rgba(61,224,168,.22)}
+  #openCard{border-color:rgba(61,224,168,.18)}
   #sumBal.win{text-shadow:0 0 32px rgba(61,224,168,.35)}
   #fab{border-radius:999px}
   .btn.primary,.btn.ghost,.btn.danger{border-radius:14px}
@@ -346,6 +346,10 @@
   }
   #ambient{display:none}
   .tprog{margin-top:14px}
+  .obox{border:1px solid rgba(61,224,168,.26);background:rgba(61,224,168,.05);border-radius:14px;padding:13px 16px}
+  .obox+.obox{margin-top:12px}
+  .obox.ord{border-color:var(--line);background:rgba(255,255,255,.02)}
+  .obox .trow{padding:0}
   .pbar{position:relative;height:7px;background:rgba(255,255,255,.07);border-radius:99px}
   .pfill{height:100%;width:0;background:linear-gradient(90deg,#0F3D2C,#1F8A63);border-radius:99px;transition:width 1.6s linear}
   .phigh{position:absolute;top:0;bottom:0;width:0;left:-9px;transition:left 1.2s ease}
@@ -828,6 +832,8 @@
       else if(rrNow!=null)rrTxt="R "+rrNow.toFixed(1);
       var d=openDom[p.id];
       if(!d){
+        var box=document.createElement("div");
+        box.className="obox";
         var row=document.createElement("div");
         row.className="trow"; row.style.cursor="default";
         row.innerHTML=
@@ -836,15 +842,16 @@
           '<div><div class="sym">'+esc((p.symbol||"?").toUpperCase())+' <span class="tpsl">'+esc(p.size!=null?(p.size+" lot"+(p.size===1?"":"s")):"?")+'</span></div>'+
           '<div class="meta num"><span class="omark"></span></div></div>'+
           '<div class="pnl"><div class="num ofloat"></div><div class="r">floating</div></div>';
-        host.appendChild(row);
+        box.appendChild(row);
         var wrap=null;
         if(prog!=null){
           wrap=document.createElement("div");
           wrap.className="tprog";
           wrap.innerHTML='<div class="pbar"><div class="pfill"></div><div class="phigh"></div></div>'+
             '<div class="pmeta num"><span>entry '+p.entry+'</span><span class="omid"></span><span>TP '+p.tp+'</span></div>';
-          host.appendChild(wrap);
+          box.appendChild(wrap);
         }
+        host.appendChild(box);
         d=openDom[p.id]={
           float:f||0, mark:p.mark||0,
           elF:row.querySelector(".ofloat"), elM:row.querySelector(".omark"),
@@ -869,6 +876,8 @@
       var pct=(dist!=null&&o.price)?(dist/o.price*100):null;
       var d2=openDom[o.id];
       if(!d2){
+        var obx=document.createElement("div");
+        obx.className="obox ord";
         var row=document.createElement("div");
         row.className="trow"; row.style.cursor="default";
         row.innerHTML=
@@ -877,7 +886,8 @@
           '<div><div class="sym">'+esc((o.symbol||"?").toUpperCase())+' <span class="tpsl">'+esc(o.size!=null?(o.size+" lot"+(o.size===1?"":"s")):"?")+' \u00B7 '+esc(o.kind||"ORDER")+' @ '+(o.price!=null?o.price:"?")+'</span></div>'+
           '<div class="meta num oline"></div></div>'+
           '<div class="pnl"><div class="odist"></div><div class="r">to trigger</div></div>';
-        host.appendChild(row);
+        obx.appendChild(row);
+        host.appendChild(obx);
         d2=openDom[o.id]={elM:row.querySelector(".oline"),elD:row.querySelector(".odist")};
       }
       d2.elM.textContent="now "+(o.mark!=null?o.mark:"?")+"  \u00B7  TP "+(o.tp!=null?o.tp:"\u2013")+" \u00B7 SL "+(o.sl!=null?o.sl:"\u2013");
