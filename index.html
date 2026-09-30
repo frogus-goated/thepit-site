@@ -264,6 +264,24 @@
   .btn.primary,.btn.ghost,.btn.danger{border-radius:14px}
   .sheet{background:rgba(16,19,27,.92);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);border-color:rgba(255,255,255,.1)}
   #eqBox svg path[stroke]{filter:drop-shadow(0 0 8px rgba(238,200,98,.35))}
+
+  /* glass composition pass: match the approved mockup's density */
+  #top{background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.09);border-radius:18px;padding:11px 16px;margin-top:10px;backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);position:sticky}
+  #btnLogTop{background:linear-gradient(180deg,#F7E9BE,var(--gold) 40%,#C99B3C);color:#241A05;border:0;border-radius:999px;padding:8px 16px;font-family:var(--body);font-weight:700;font-size:11px;letter-spacing:.06em;cursor:pointer;box-shadow:0 6px 22px rgba(238,200,98,.35)}
+  #btnLogTop:active{transform:scale(.97)}
+  .card{padding:18px}
+  .card h2{margin:0 0 14px}
+  #sumCard{padding:20px 18px}
+  #sumBal{font-size:clamp(36px,6.5vw,46px)}
+  #capgrid{gap:12px;border-top:0;padding-top:0;margin-top:22px}
+  #capgrid .cap{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:12px 14px}
+  #capgrid .cap:first-child{padding-left:14px}
+  #capgrid .cv{font-size:18px}
+  .chk2{padding:10px 14px}
+  .trow .dir{width:32px;height:32px}
+  .trow .pnl .num{font-size:16px}
+  @media (min-width:641px){#fab{display:none}}
+  @media (max-width:640px){#btnLogTop{display:none}}
 </style>
 <div id="bgCandles" aria-hidden="true"></div>
 <div id="ambient" aria-hidden="true"></div>
@@ -272,9 +290,10 @@
 <div id="wrap">
   <div id="top">
     <div id="brand">THE<b>PIT</b></div>
-    <div style="display:flex;gap:8px">
+    <div style="display:flex;gap:8px;align-items:center">
       <button id="btnImport" type="button" hidden>Import</button>
       <button id="btnSettings" type="button">Setup</button>
+      <button id="btnLogTop" type="button">+ Log trade</button>
     </div>
   </div>
   <input id="impFile" type="file" accept="image/*" multiple hidden>
@@ -282,7 +301,7 @@
   <div id="main">
     <section class="card" id="sumCard">
       <svg id="heroSpark" viewBox="0 0 100 32" preserveAspectRatio="none" aria-hidden="true"></svg>
-      <h2>Account <button id="btnFlow" class="hbtn" type="button">+ Money</button></h2>
+      <h2>Account</h2>
       <div id="heroRow">
         <div id="heroL">
           <div class="lbl">Profit, all time</div>
@@ -301,8 +320,6 @@
         <div class="cap"><div class="lbl">Withdrawn</div><div class="cv num" id="cWit">$0</div></div>
         <div class="cap"><div class="lbl">Reinvested</div><div class="cv num" id="cRei">$0</div></div>
       </div>
-      <div class="lbl" id="flabel">Recent moves</div>
-      <div id="flist"></div>
     </section>
 
     <section class="card" id="openCard" hidden>
@@ -322,6 +339,11 @@
     <section class="card" id="ruleCard">
       <h2>Rule check <span class="num" id="ruleScore"></span></h2>
       <div id="rchecks"></div>
+    </section>
+
+    <section class="card" id="movesCard">
+      <h2>Money moves <button id="btnFlow" class="hbtn" type="button">+ Money</button></h2>
+      <div id="flist"></div>
     </section>
 
     <section class="card chart-card">
@@ -897,11 +919,13 @@
   function sheet(name,show){
     $("scrim"+name).hidden=!show; $("sheet"+name).hidden=!show;
   }
-  $("fab").addEventListener("click",function(){
+  var openLog=function(){
     var d=new Date(); d.setMinutes(d.getMinutes()-d.getTimezoneOffset());
     $("fWhen").value=d.toISOString().slice(0,16);
     sheet("Log",true); $("fSym").focus();
-  });
+  };
+  $("fab").addEventListener("click",openLog);
+  if($("btnLogTop"))$("btnLogTop").addEventListener("click",openLog);
   $("scrimLog").addEventListener("click",function(){sheet("Log",false)});
   $("btnSettings").addEventListener("click",function(){
     $("sBal").value=settings.startBalance!=null?settings.startBalance:"";
@@ -1086,6 +1110,7 @@
       var note=$("offnote"); note.style.display="block";
       if(mirror){
         $("fab").hidden=true; $("btnSettings").hidden=true; $("btnFlow").hidden=true;
+        var blt=$("btnLogTop"); if(blt)blt.hidden=true;
         note.textContent="Mirror view, synced "+(upd?String(upd).slice(0,10):"recently")+". Logging happens on the Claude dashboard.";
         render();
       }
