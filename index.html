@@ -69,7 +69,6 @@
   #vaddr{display:flex;align-items:center;gap:8px;margin-top:12px;min-width:0}
   #vaddr code{flex:1;min-width:0;font-family:var(--mono);font-size:10px;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;transition:color .15s}
   #vaddr code:hover,#vaddr code:focus-visible{color:var(--gold);outline:none}
-  #vcopy{flex:none;font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);border:1px solid var(--hairline);border-radius:6px;padding:3px 7px;pointer-events:none}
   #capgrid{display:grid;grid-template-columns:repeat(4,1fr);margin-top:24px;padding-top:18px;border-top:1px solid var(--line-soft)}
   #capgrid .cap{min-width:0;padding:0 18px;border-left:1px solid var(--line-soft)}
   #capgrid .cap:first-child{border-left:0;padding-left:0}
@@ -246,7 +245,7 @@
           <div class="vhead"><span class="lbl">BTC vault</span><span class="lbl">Goal 1 BTC</span></div>
           <div id="vpct" class="num">&ndash;</div>
           <div id="vbar"><div id="vfill"></div></div>
-          <div id="vaddr"><code id="vaddrTxt" role="button" tabindex="0" title="Click to copy">bc1q6947reqr6weujqra7s8ahrq06tz9hph3lgh8l6</code><span id="vcopy">Tap to copy</span></div>
+          <div id="vaddr"><code id="vaddrTxt" role="button" tabindex="0" title="Tap to copy">bc1q6947reqr6weujqra7s8ahrq06tz9hph3lgh8l6</code></div>
         </div>
       </div>
       <div id="capgrid">
