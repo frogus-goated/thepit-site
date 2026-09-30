@@ -23,6 +23,7 @@
     color-scheme:dark;
   }
   *{box-sizing:border-box}
+  :root{--blu:#8FC2EE}
   body{margin:0;background:radial-gradient(1100px 520px at 50% -120px,rgba(233,197,107,.08),transparent 62%),var(--bg);color:var(--ink);font-family:var(--body);font-size:14.5px;line-height:1.5;-webkit-font-smoothing:antialiased}
   #wrap{max-width:1080px;margin:0 auto;padding:0 16px 120px}
   [hidden]{display:none!important}
@@ -119,7 +120,8 @@
   .chartbox{position:relative;margin-top:4px}
   .chartbox svg{display:block;width:100%;height:auto}
   .sq{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:6px;vertical-align:-1px}
-  .sq.sp{background:var(--win)} .sq.sl{background:var(--loss)} .sq.sb{background:var(--gold)} .sq.sd{background:var(--ink-3)}
+  .sq.sp{background:var(--win)} .sq.sl{background:var(--loss)} .sq.sb{background:var(--blu)} .sq.sd{background:#F59E4B}
+  #dayLegend .lg{display:inline-flex;align-items:center}
   .mini-seg{display:inline-flex;gap:2px;background:rgba(255,255,255,.04);border:1px solid var(--hairline);border-radius:8px;padding:2px}
   .mini-seg button{background:none;border:0;border-radius:6px;color:var(--ink-3);font-family:var(--mono);font-size:9px;font-weight:600;letter-spacing:.12em;padding:4px 9px;cursor:pointer;transition:background .12s,color .12s}
   .mini-seg button[aria-pressed="true"]{background:var(--gold-dim);color:var(--gold)}
@@ -132,8 +134,10 @@
   .trow2:hover{background:rgba(233,197,107,.05)}
   .tdir{font-size:9px;text-align:center;margin-top:3px}
   .tdir.long{color:var(--win)} .tdir.short{color:var(--loss)}
-  .tdir.fwit{color:var(--win);font-size:12px} .tdir.frei{color:#F59E4B;font-size:12px} .tdir.fown{color:var(--ink-3);font-size:12px}
-  .tsym.wit{color:var(--win)} .tsym.rei{color:#F59E4B} .tsym.own{color:var(--ink-2)}
+  .tdir.fwit{color:var(--blu);font-size:12px} .tdir.frei{color:#F59E4B;font-size:12px} .tdir.fown{color:var(--ink-3);font-size:12px}
+  .tsym.wit{color:var(--blu)} .tsym.rei{color:#F59E4B} .tsym.own{color:var(--ink-2)}
+  .tpnl.fwit{color:var(--blu)} .tpnl.frei{color:#F59E4B}
+  #cWit{color:var(--blu)}
   .trow2 .tmain{min-width:0}
   .trow2 .tl1{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline}
   .trow2 .tsym{font-family:var(--mono);font-weight:600;font-size:12.5px}
@@ -475,7 +479,7 @@
       <div class="tile"><div class="lbl">Win rate</div><div class="v num" id="tWr">&ndash;</div></div>
       <div class="tile"><div class="lbl">Avg R:R</div><div class="v num" id="tPf">&ndash;</div></div>
       <div class="tile"><div class="lbl">Avg R</div><div class="v num" id="tR">&ndash;</div></div>
-      <div class="tile"><div class="lbl">Last bank</div><div class="v num" id="tBest">&ndash;</div></div>
+      <div class="tile"><div class="lbl">Last withdraw</div><div class="v num" id="tBest">&ndash;</div></div>
       <div class="tile"><div class="lbl">Green days</div><div class="v num" id="tGreen">&ndash;</div></div>
       <div class="tile"><div class="lbl">Trades</div><div class="v num" id="tTrades">0</div></div>
     </div>
@@ -496,7 +500,7 @@
       <h2>Day by day
         <span class="num" id="dayRange"></span></h2>
       <div class="chartbox" id="dayBox"></div>
-      <div id="dayLegend" hidden><i class="sq sp"></i>profit<i class="sq sl"></i>loss<i class="sq sb"></i>banked<i class="sq sd"></i>re-deposited</div>
+      <div id="dayLegend" hidden><span class="lg"><i class="sq sp"></i>profit</span><span class="lg"><i class="sq sl"></i>loss</span><span class="lg"><i class="sq sb"></i>withdrawn</span><span class="lg"><i class="sq sd"></i>reinvested</span></div>
     </section>
 
     <section class="card" id="logCard">
@@ -741,9 +745,9 @@
     var bankAt=(typeof settings.bankAt==="number"&&settings.bankAt>0)?settings.bankAt:2500;
     var over=recent.filter(function(t){return (s.preBal[t.id]||0)>=bankAt}).length;
     var bankFmt=bankAt>=1000?("$"+(bankAt/1000)+"k"):("$"+bankAt);
-    checks.push({st:over===0?"ok":(over===1?"mid":"bad"), l:"Bank often",
+    checks.push({st:over===0?"ok":(over===1?"mid":"bad"), l:"Withdraw often",
       t:over===0
-        ? "no trades taken with "+bankFmt+"+ sitting on the balance · "+pct+"% of profit banked"
+        ? "no trades taken with "+bankFmt+"+ sitting on the balance · "+pct+"% of profit withdrawn"
         : over+" trade"+(over===1?"":"s")+" taken with "+bankFmt+"+ on the balance (last 15) · bank it before you trade it"});
     if(al>0&&aw>0){
       var ratio=aw/al;
@@ -955,7 +959,7 @@
       '<div class="tmain"><div class="tl1"><span class="tsym '+(w?"wit":(rei?"rei":"own"))+'">'+(w?"WITHDRAWN":(rei?"REINVESTED":"DEPOSIT"))+'</span>'+
       '<span class="ttime">'+esc(String(f.ts||"").slice(11,16))+'</span>'+
       (f.notes?'<span class="tinfo">'+esc(f.notes)+'</span>':"")+'</div></div>'+
-      '<span class="tpnl">'+(w?"-":"+")+"$"+(f.amount||0).toLocaleString("en-US")+'</span>';
+      '<span class="tpnl '+(w?"fwit":(rei?"frei":""))+'">'+(w?"-":"+")+"$"+(f.amount||0).toLocaleString("en-US")+'</span>';
     var open=function(){showFlowDetail(f)};
     row.addEventListener("click",open);
     row.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();open()}});
@@ -1187,7 +1191,7 @@
       }
       if(x.bank!=null){
         var y2=Y(x.bank), top2=Math.min(y0,y2), h2=Math.max(2,Math.abs(y0-y2));
-        bars+='<rect data-i="'+i+'" x="'+(x0+half+1).toFixed(1)+'" y="'+top2.toFixed(1)+'" width="'+half.toFixed(1)+'" height="'+h2.toFixed(1)+'" rx="3" fill="'+(x.bank>=0?"url(#g4b)":"rgba(138,147,166,.55)")+'"/>';
+        bars+='<rect data-i="'+i+'" x="'+(x0+half+1).toFixed(1)+'" y="'+top2.toFixed(1)+'" width="'+half.toFixed(1)+'" height="'+h2.toFixed(1)+'" rx="3" fill="'+(x.bank>=0?"url(#g4b)":"rgba(245,158,75,.7)")+'"/>';
       }
     });
     var hits="";
@@ -1198,11 +1202,11 @@
     series.forEach(function(x,i){
       if(i%stepD===0)dlbl+='<text x="'+(xStart+i*bw+bw/2).toFixed(1)+'" y="'+(H-6)+'" text-anchor="middle" font-size="8.5" fill="var(--ink-4)" font-family="IBM Plex Mono,monospace">'+(+x.day.slice(8,10))+'</text>';
     });
-    box.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Per day: trade P&L and net banked">'+
+    box.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Per day: trade P&L and net withdrawn">'+
       '<defs>'+
       '<linearGradient id="g4w" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4FF0B8"/><stop offset="1" stop-color="#1F8A63"/></linearGradient>'+
       '<linearGradient id="g4l" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FF8E70"/><stop offset="1" stop-color="#C2543C"/></linearGradient>'+
-      '<linearGradient id="g4b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F7E9BE"/><stop offset="1" stop-color="#C99B3C"/></linearGradient>'+
+      '<linearGradient id="g4b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#BBDCF7"/><stop offset="1" stop-color="#5E93C4"/></linearGradient>'+
       '</defs>'+
       grid+labels+dlbl+
       '<line x1="'+padL+'" y1="'+y0+'" x2="'+(W-padR)+'" y2="'+y0+'" stroke="var(--ink-3)" stroke-width="1"/>'+bars+hits+'</svg>';
@@ -1346,7 +1350,7 @@
   function showFlowDetail(f){
     detailId=f.id; detailKind="flow"; deleteArmed=false;
     $("detDelete").textContent="DELETE";
-    $("detTitle").textContent=(f.type==="withdraw"?"WITHDRAW":(f.source==="profit"?"REINVEST":"DEPOSIT"));
+    $("detTitle").textContent=(f.type==="withdraw"?"WITHDRAWN":(f.source==="profit"?"REINVESTED":"DEPOSIT"));
     var rows=[["Date",dayOf(f.ts)],["Amount",fmtBal(f.amount||0)],["Notes",f.notes||"–"]];
     $("detailrows").innerHTML=rows.map(function(r){
       return '<div class="dr"><span>'+esc(r[0])+'</span><span class="num">'+esc(r[1])+'</span></div>';
