@@ -56,8 +56,7 @@
   /* ---- hero ---- */
   #sumCard{overflow:hidden;border-color:rgba(233,197,107,.2);box-shadow:inset 0 1px 0 rgba(255,246,220,.07),0 24px 60px -24px rgba(0,0,0,.75),0 0 70px -30px rgba(233,197,107,.35);padding:22px 20px 20px}
   #sumCard::before{content:"";position:absolute;top:-140px;left:50%;transform:translateX(-50%);width:640px;height:320px;border-radius:50%;background:radial-gradient(closest-side,rgba(233,197,107,.13),transparent 72%);pointer-events:none}
-  #sumCard>:not(#heroSpark):not(#heroTop){position:relative;z-index:1}
-  #heroTop{position:absolute;left:0;right:0;top:0;width:100%;height:96px;opacity:.5;pointer-events:none;-webkit-mask-image:linear-gradient(to bottom,rgba(0,0,0,.8),transparent);mask-image:linear-gradient(to bottom,rgba(0,0,0,.8),transparent)}
+  #sumCard>:not(#heroSpark){position:relative;z-index:1}
   #heroSpark{position:absolute;left:0;right:0;bottom:0;width:100%;height:110px;opacity:.55;pointer-events:none;-webkit-mask-image:linear-gradient(to top,rgba(0,0,0,.8),transparent);mask-image:linear-gradient(to top,rgba(0,0,0,.8),transparent)}
   #heroRow{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:20px 36px;align-items:stretch}
   #heroL{min-width:0;align-self:center}
@@ -430,10 +429,6 @@
     <div id="heroWrap">
       <section class="card" id="sumCard">
         <svg id="heroSpark" viewBox="0 0 100 32" preserveAspectRatio="none" aria-hidden="true"></svg>
-        <svg id="heroTop" viewBox="0 0 100 28" preserveAspectRatio="none" aria-hidden="true">
-          <path d="M0 13L8 10L15 16L24 7L32 12L41 4L50 14L58 9L68 17L77 8L86 13L93 6L100 11L100 0L0 0Z" fill="var(--gold)" opacity=".07"/>
-          <path d="M0 13L8 10L15 16L24 7L32 12L41 4L50 14L58 9L68 17L77 8L86 13L93 6L100 11" fill="none" stroke="var(--gold)" stroke-width="1" opacity=".3" vector-effect="non-scaling-stroke"/>
-        </svg>
         <div id="heroL">
           <div class="lbl">Profit, all time</div>
           <div id="sumBal" class="num">$0</div>
