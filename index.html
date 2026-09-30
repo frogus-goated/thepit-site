@@ -762,23 +762,29 @@
         t:big+" loss"+(big===1?"":"es")+" bigger than your average winner in the last 15"+(big>1?" · this is where the profit leaks":"")});
     }
     /* revenge = re-entering the same symbol+direction within 60 min of closing a loss on it,
-       or any entry within 5 min of any loss (tilt). Owner's definition, 2026-10-01. */
-    var fast=0, revCost=0;
+       or any entry within 5 min of any loss (tilt). Owner's definition, 2026-10-01.
+       Sentence compares the whole chain's damage to the original loss alone. */
+    var fast=0, revPnl=0, flagged={}, origs=[];
     recent.forEach(function(t){
-      var openT=new Date(t.openTs||t.ts);
-      var hit=recent.some(function(L){
-        if((L.pnl||0)>=0||L===t)return false;
+      var openT=new Date(t.openTs||t.ts), trig=null;
+      recent.forEach(function(L){
+        if(trig||(L.pnl||0)>=0||L===t)return;
         var gap=(openT-new Date(L.ts))/6e4;
-        if(gap<0)return false;
-        if(gap<=5)return true;
-        return gap<=60&&L.symbol===t.symbol&&L.dir===t.dir;
+        if(gap<0)return;
+        if(gap<=5||(gap<=60&&L.symbol===t.symbol&&L.dir===t.dir))trig=L;
       });
-      if(hit){fast++;revCost+=(t.pnl||0);}
+      if(trig){fast++;revPnl+=(t.pnl||0);flagged[t.id]=1;if(origs.indexOf(trig)<0)origs.push(trig);}
     });
+    var origLoss=0;
+    origs.forEach(function(L){if(!flagged[L.id])origLoss+=(L.pnl||0)});
+    var chain=origLoss+revPnl;
+    var dol=function(v){return "$"+Math.abs(Math.round(v)).toLocaleString("en-US")};
     checks.push({st:fast===0?"ok":(fast===1?"mid":"bad"), l:"No revenge entries",
       t:fast===0
         ? "no re-entries into a setup you just lost on"
-        : fast+" re-entr"+(fast===1?"y":"ies")+" into a setup you just lost on (last 15)"+(revCost<0?" · they cost "+fmt$(revCost):" · they made "+fmt$(revCost))});
+        : (chain<origLoss
+          ? fast+" re-entr"+(fast===1?"y":"ies")+" (last 15) · cost you "+dol(chain)+" instead of the original "+dol(origLoss)+" loss on the same setup"
+          : fast+" re-entr"+(fast===1?"y":"ies")+" after a loss (last 15) · clawed back "+dol(revPnl)+" of the original "+dol(origLoss)+" loss")});
     var okN=checks.filter(function(c){return c.st==="ok"}).length;
     $("ruleScore").textContent=okN+" of "+checks.length+" on plan";
     checks.forEach(function(c){
