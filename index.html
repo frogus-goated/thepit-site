@@ -390,6 +390,8 @@
   #dayLegend[hidden],#eqLegend[hidden]{display:none}
   .sq{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:6px;vertical-align:-1px}
   #dayLegend,#eqLegend{margin-top:8px}
+  #eqVal{font-size:18px;font-weight:600;letter-spacing:0;text-transform:none;margin-left:4px;color:var(--ink)}
+  #eqVal.win{color:var(--win)} #eqVal.loss{color:var(--loss)}
 </style>
 <div id="bgCandles" aria-hidden="true"></div>
 <div id="bgCandlesLit" aria-hidden="true"></div><div class="bgc cl2"></div><div class="bgc cl3"></div><div class="bgc cl4"></div><div class="bgc cl5"></div><div class="bgc cl6"></div><div class="bgc cl7"></div></div>
@@ -475,7 +477,7 @@
     </section>
 
     <section class="card chart-card">
-      <h2><span id="eqTitle">Balance</span>
+      <h2><span id="eqTitle">Balance</span><span id="eqVal" class="num"></span>
         <span class="mini-seg"><button id="mBal" type="button" aria-pressed="true">BAL</button><button id="mPnl" type="button" aria-pressed="false">P&amp;L</button></span>
         <span class="num" id="eqRange"></span></h2>
       <div class="chartbox" id="eqBox"></div>
@@ -1015,6 +1017,15 @@
   }
   function hideTip(){tip.style.display="none"}
 
+  function smoothPath(P){
+    if(P.length<3){var d0="M"+P[0][0].toFixed(1)+" "+P[0][1].toFixed(1);for(var q=1;q<P.length;q++)d0+="L"+P[q][0].toFixed(1)+" "+P[q][1].toFixed(1);return d0}
+    var d="M"+P[0][0].toFixed(1)+" "+P[0][1].toFixed(1);
+    for(var i=0;i<P.length-1;i++){
+      var p0=P[Math.max(0,i-1)],p1=P[i],p2=P[i+1],p3=P[Math.min(P.length-1,i+2)];
+      d+="C"+(p1[0]+(p2[0]-p0[0])/6).toFixed(1)+" "+(p1[1]+(p2[1]-p0[1])/6).toFixed(1)+","+(p2[0]-(p3[0]-p1[0])/6).toFixed(1)+" "+(p2[1]-(p3[1]-p1[1])/6).toFixed(1)+","+p2[0].toFixed(1)+" "+p2[1].toFixed(1);
+    }
+    return d;
+  }
   function renderEquity(d){
     var box=$("eqBox");
     var balMode=(chartMode==="bal");
@@ -1068,19 +1079,22 @@
     }
     var zero=(!balMode&&min<0&&max>0)?'<line x1="'+padL+'" y1="'+Y(0)+'" x2="'+(W-padR)+'" y2="'+Y(0)+'" stroke="var(--ink-3)" stroke-width="1" stroke-dasharray="3 4"/>':"";
     var last=pts[pts.length-1];
-    var marks="";
-    if(pts.length<=45){
-      pts.slice(1,-1).forEach(function(pp){
-        marks+='<circle cx="'+X(pp.x).toFixed(1)+'" cy="'+Y(pp.v).toFixed(1)+'" r="2.6" fill="var(--bg)" stroke="'+lineCol+'" stroke-width="1.5"/>';
-      });
-    }
-    var lyv=Math.max(Y(last.v)-9,11);
+    var ev=$("eqVal");
+    ev.textContent=balMode?fmtBal(last.v):fmt$(last.v);
+    ev.className="num "+(balMode?(last.v<0?"loss":""):(last.v>0?"win":last.v<0?"loss":""));
+    var P=pts.map(function(pp){return [X(pp.x),Y(pp.v)]});
+    var sp=smoothPath(P);
+    var baseY=H-padB;
+    var dlbl2="", stepE=Math.ceil(pts.length/8);
+    pts.forEach(function(pp,i){
+      if(i>0&&(i-1)%stepE===0&&pp.day)dlbl2+='<text x="'+X(pp.x).toFixed(1)+'" y="'+(H-4)+'" text-anchor="middle" font-size="8.5" fill="var(--ink-4)" font-family="IBM Plex Mono,monospace">'+(+pp.day.slice(8,10))+'</text>';
+    });
     box.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="'+(balMode?"Account balance and money in, by day":"Cumulative P&L by day")+'">'+
-      grid+zero+labels+
-      '<line x1="'+X(last.x)+'" y1="'+Y(last.v)+'" x2="'+X(last.x)+'" y2="'+(H-padB)+'" stroke="rgba(238,200,98,.25)" stroke-width="1" stroke-dasharray="2 4"/>'+
-      '<path d="'+path+'" fill="none" stroke="'+lineCol+'" stroke-width="1.5" stroke-linejoin="round"/>'+marks+
-      '<circle cx="'+X(last.x)+'" cy="'+Y(last.v)+'" r="3.5" fill="'+lineCol+'"/>'+
-      '<text x="'+(X(last.x)-8)+'" y="'+lyv+'" text-anchor="end" font-size="11" font-weight="600" fill="'+lineCol+'" font-family="IBM Plex Mono,monospace">'+(balMode?fmtBal(last.v):fmt$(last.v))+'</text>'+
+      '<defs><linearGradient id="eqA" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="rgba(238,200,98,.34)"/><stop offset="1" stop-color="rgba(238,200,98,.02)"/></linearGradient></defs>'+
+      zero+labels+dlbl2+
+      '<path d="'+sp+'L'+X(last.x).toFixed(1)+' '+baseY+'L'+X(pts[0].x).toFixed(1)+' '+baseY+'Z" fill="url(#eqA)"/>'+
+      '<path d="'+sp+'" fill="none" stroke="'+lineCol+'" stroke-width="2" stroke-linejoin="round"/>'+
+      '<circle cx="'+X(last.x)+'" cy="'+Y(last.v)+'" r="4" fill="#F7E9BE"/>'+
       '<line id="eqCross" x1="0" y1="'+padT+'" x2="0" y2="'+(H-padB)+'" stroke="var(--ink-3)" stroke-width="1" opacity="0"/>'+
       '</svg>';
     var svg=box.querySelector("svg"), cross=box.querySelector("#eqCross");
@@ -1138,17 +1152,17 @@
       labels+='<text x="'+(padL-8)+'" y="'+(y+3)+'" text-anchor="end" font-size="10" fill="var(--ink-3)" font-family="IBM Plex Mono,monospace">'+(v<0?"-":"")+"$"+Math.round(Math.abs(v)).toLocaleString("en-US")+'</text>';
     }
     var bars="", y0=Y(0);
-    var half=Math.max(2,Math.min(bw/2-1.5,8));
+    var half=Math.max(2,Math.min(bw/2-1.5,12));
     series.forEach(function(x,i){
       var x0=xStart+i*bw+1;
       var rx=0;
       if(x.pnl!=null){
         var y1=Y(x.pnl), top=Math.min(y0,y1), h=Math.max(2,Math.abs(y0-y1));
-        bars+='<rect data-i="'+i+'" x="'+x0.toFixed(1)+'" y="'+top.toFixed(1)+'" width="'+half.toFixed(1)+'" height="'+h.toFixed(1)+'" rx="'+rx+'" fill="'+(x.pnl>=0?"var(--win)":"var(--loss)")+'" opacity=".9"/>';
+        bars+='<rect data-i="'+i+'" x="'+x0.toFixed(1)+'" y="'+top.toFixed(1)+'" width="'+half.toFixed(1)+'" height="'+h.toFixed(1)+'" rx="3" fill="'+(x.pnl>=0?"url(#g4w)":"url(#g4l)")+'"/>';
       }
       if(x.bank!=null){
         var y2=Y(x.bank), top2=Math.min(y0,y2), h2=Math.max(2,Math.abs(y0-y2));
-        bars+='<rect data-i="'+i+'" x="'+(x0+half+1).toFixed(1)+'" y="'+top2.toFixed(1)+'" width="'+half.toFixed(1)+'" height="'+h2.toFixed(1)+'" rx="'+rx+'" fill="'+(x.bank>=0?"var(--gold)":"var(--ink-3)")+'" opacity=".9"/>';
+        bars+='<rect data-i="'+i+'" x="'+(x0+half+1).toFixed(1)+'" y="'+top2.toFixed(1)+'" width="'+half.toFixed(1)+'" height="'+h2.toFixed(1)+'" rx="3" fill="'+(x.bank>=0?"url(#g4b)":"rgba(138,147,166,.55)")+'"/>';
       }
     });
     var hits="";
@@ -1160,6 +1174,11 @@
       if(i%stepD===0)dlbl+='<text x="'+(xStart+i*bw+bw/2).toFixed(1)+'" y="'+(H-6)+'" text-anchor="middle" font-size="8.5" fill="var(--ink-4)" font-family="IBM Plex Mono,monospace">'+(+x.day.slice(8,10))+'</text>';
     });
     box.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Per day: trade P&L and net banked">'+
+      '<defs>'+
+      '<linearGradient id="g4w" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4FF0B8"/><stop offset="1" stop-color="#1F8A63"/></linearGradient>'+
+      '<linearGradient id="g4l" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FF8E70"/><stop offset="1" stop-color="#C2543C"/></linearGradient>'+
+      '<linearGradient id="g4b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F7E9BE"/><stop offset="1" stop-color="#C99B3C"/></linearGradient>'+
+      '</defs>'+
       grid+labels+dlbl+
       '<line x1="'+padL+'" y1="'+y0+'" x2="'+(W-padR)+'" y2="'+y0+'" stroke="var(--ink-3)" stroke-width="1"/>'+bars+hits+'</svg>';
     var svg=box.querySelector("svg");
