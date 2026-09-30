@@ -416,6 +416,18 @@
     });
     dayKeys.sort();
     var days=dayKeys.map(function(k){return byDay[k]});
+    /* running balance right before each trade; with no SL his risk = the balance,
+       so effective R = pnl / pre-trade balance when no manual r is logged */
+    var startB0=(typeof settings.startBalance==="number"?settings.startBalance:0);
+    var evs=[];
+    list.forEach(function(t){evs.push({ts:String(t.ts||""),k:"t",o:t})});
+    fl.forEach(function(f){evs.push({ts:String(f.ts||""),k:"f",o:f})});
+    evs.sort(function(a,b){return a.ts.localeCompare(b.ts)});
+    var runBal=startB0, preBal={};
+    evs.forEach(function(e){
+      if(e.k==="f"){ runBal+=(e.o.type==="withdraw"?-(e.o.amount||0):(e.o.amount||0)); }
+      else { preBal[e.o.id]=runBal; runBal+=(e.o.pnl||0); }
+    });
     var s={n:list.length,net:0,wins:0,losses:0,gw:0,gl:0,rSum:0,rN:0,maxR:0,maxPnl:-Infinity,bestSym:"",
            tagged:0,winStreak:0,maxWinStreak:0,dayStreak:0,greenDays:0,greenWeek:false,comeback:false};
     var run=0;
@@ -423,7 +435,8 @@
       var p=t.pnl||0; s.net+=p;
       if(p>0){s.wins++;s.gw+=p;run++;if(run>s.maxWinStreak)s.maxWinStreak=run}
       else if(p<0){s.losses++;s.gl+=-p;run=0}
-      if(typeof t.r==="number"){s.rSum+=t.r;s.rN++;if(t.r>s.maxR)s.maxR=t.r}
+      var rEff=(typeof t.r==="number")?t.r:(((preBal[t.id]||0)>0)?p/preBal[t.id]:null);
+      if(rEff!=null){s.rSum+=rEff;s.rN++;if(rEff>s.maxR)s.maxR=rEff}
       if(p>s.maxPnl){s.maxPnl=p;s.bestSym=t.symbol||""}
       if(t.setup)s.tagged++;
     });
@@ -449,16 +462,6 @@
     var startB=(typeof settings.startBalance==="number"?settings.startBalance:0);
     s.own=startB+s.dep-s.rei;
     s.lastDay=days.length?days[days.length-1].day:null;
-    /* running balance right before each trade (flows + trades in time order) */
-    var evs=[];
-    list.forEach(function(t){evs.push({ts:String(t.ts||""),k:"t",o:t})});
-    fl.forEach(function(f){evs.push({ts:String(f.ts||""),k:"f",o:f})});
-    evs.sort(function(a,b){return a.ts.localeCompare(b.ts)});
-    var runBal=startB, preBal={};
-    evs.forEach(function(e){
-      if(e.k==="f"){ runBal+=(e.o.type==="withdraw"?-(e.o.amount||0):(e.o.amount||0)); }
-      else { preBal[e.o.id]=runBal; runBal+=(e.o.pnl||0); }
-    });
     s.preBal=preBal;
     return {list:list,fl:fl,days:days,tradeDays:tradeDays,s:s};
   }
