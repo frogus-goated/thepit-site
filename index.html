@@ -702,7 +702,7 @@
     $("tTrades").textContent=s.n;
     $("tWr").textContent=s.n?Math.round(s.wins/s.n*100)+"%":"–";
     $("tPf").textContent=s.gl>0?(s.gw/s.gl).toFixed(2):(s.gw>0?"∞":"–");
-    $("tR").textContent=s.aplN?(fmt$(s.apl/s.aplN)+"/lot"):"–";
+    $("tR").textContent=s.aplN?fmt$(s.apl/s.aplN):"–";
     $("tR").className="v num";
     var best=$("tBest");
     if(s.lastWitDay&&s.lastDay){
