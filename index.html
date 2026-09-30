@@ -1022,7 +1022,10 @@
     var d="M"+P[0][0].toFixed(1)+" "+P[0][1].toFixed(1);
     for(var i=0;i<P.length-1;i++){
       var p0=P[Math.max(0,i-1)],p1=P[i],p2=P[i+1],p3=P[Math.min(P.length-1,i+2)];
-      d+="C"+(p1[0]+(p2[0]-p0[0])/6).toFixed(1)+" "+(p1[1]+(p2[1]-p0[1])/6).toFixed(1)+","+(p2[0]-(p3[0]-p1[0])/6).toFixed(1)+" "+(p2[1]-(p3[1]-p1[1])/6).toFixed(1)+","+p2[0].toFixed(1)+" "+p2[1].toFixed(1);
+      var lo=Math.min(p1[1],p2[1]), hi=Math.max(p1[1],p2[1]);
+      var c1y=Math.max(lo,Math.min(hi,p1[1]+(p2[1]-p0[1])/6));
+      var c2y=Math.max(lo,Math.min(hi,p2[1]-(p3[1]-p1[1])/6));
+      d+="C"+(p1[0]+(p2[0]-p0[0])/6).toFixed(1)+" "+c1y.toFixed(1)+","+(p2[0]-(p3[0]-p1[0])/6).toFixed(1)+" "+c2y.toFixed(1)+","+p2[0].toFixed(1)+" "+p2[1].toFixed(1);
     }
     return d;
   }
