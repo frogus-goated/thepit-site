@@ -155,10 +155,10 @@
   .frow2 .fd{font-size:12px}
   #openCard{border-color:rgba(212,187,135,.30);box-shadow:inset 0 1px 0 rgba(238,214,150,.07)}
   .tpsl{font-size:11px;color:var(--ink-3)}
-  #heroRow{display:grid;grid-template-columns:1fr minmax(230px,300px) 1fr;gap:14px 24px;align-items:start;margin-top:2px}
-  #heroL{grid-column:1;min-width:0}
-  #heroV{grid-column:2;width:100%;text-align:center}
-  @media (max-width:640px){#heroRow{grid-template-columns:1fr}#heroV{grid-column:1;text-align:left}}
+  #heroRow{display:grid;grid-template-columns:minmax(230px,300px) 1fr;gap:14px 24px;align-items:start;margin-top:2px}
+  #heroV{grid-column:1;width:100%;text-align:left}
+  #heroL{grid-column:2;min-width:0;justify-self:end;text-align:right}
+  @media (max-width:640px){#heroRow{grid-template-columns:1fr}#heroL{grid-column:1;order:-1;justify-self:start;text-align:left}#heroV{grid-column:1}}
   #vpct{font-family:var(--mono);font-weight:600;font-size:28px;color:var(--gold);margin-top:2px}
   #vbar{height:6px;background:var(--line-soft);border-radius:99px;overflow:hidden;margin-top:8px}
   #vfill{height:100%;width:0%;background:linear-gradient(90deg,#8F6D24,var(--gold) 55%,#F7E9BE);border-radius:99px;transition:width .6s cubic-bezier(.2,.8,.2,1)}
