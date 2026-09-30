@@ -541,6 +541,7 @@
   <div class="fld"><label for="sBal">Balance before tracking $ (optional)</label><input id="sBal" type="number" step="any" inputmode="decimal" placeholder="0"></div>
   <div class="fld"><label for="sGoal">Weekly goal (R)</label><input id="sGoal" type="number" step="any" inputmode="decimal" placeholder="10"></div>
   <div class="fld"><label for="sBankAt">Bank when balance hits $</label><input id="sBankAt" type="number" step="any" inputmode="decimal" placeholder="2500"></div>
+  <div class="fld"><label for="sRiskLot">Risk per lot $</label><input id="sRiskLot" type="number" step="any" inputmode="decimal" placeholder="1000"></div>
   <button class="btn primary" id="sSave" type="button">SAVE</button>
 </div>
 
@@ -635,13 +636,17 @@
        so effective R = pnl / pre-trade balance when no manual r is logged */
     var startB0=(typeof settings.startBalance==="number"?settings.startBalance:0);
     var evs=[];
-    list.forEach(function(t){evs.push({ts:String(t.ts||""),k:"t",o:t})});
+    list.forEach(function(t){
+      evs.push({ts:String(t.openTs||t.ts||""),k:"s",o:t});
+      evs.push({ts:String(t.ts||""),k:"p",o:t});
+    });
     fl.forEach(function(f){evs.push({ts:String(f.ts||""),k:"f",o:f})});
     evs.sort(function(a,b){return a.ts.localeCompare(b.ts)});
     var runBal=startB0, preBal={};
     evs.forEach(function(e){
       if(e.k==="f"){ runBal+=(e.o.type==="withdraw"?-(e.o.amount||0):(e.o.amount||0)); }
-      else { preBal[e.o.id]=runBal; runBal+=(e.o.pnl||0); }
+      else if(e.k==="s"){ preBal[e.o.id]=runBal; }
+      else { runBal+=(e.o.pnl||0); }
     });
     var s={n:list.length,net:0,wins:0,losses:0,gw:0,gl:0,rSum:0,rN:0,maxR:0,maxPnl:-Infinity,bestSym:"",
            tagged:0,winStreak:0,maxWinStreak:0,dayStreak:0,greenDays:0,greenWeek:false,comeback:false};
@@ -650,7 +655,8 @@
       var p=t.pnl||0; s.net+=p;
       if(p>0){s.wins++;s.gw+=p;run++;if(run>s.maxWinStreak)s.maxWinStreak=run}
       else if(p<0){s.losses++;s.gl+=-p;run=0}
-      var rEff=(typeof t.r==="number")?t.r:(((preBal[t.id]||0)>0)?p/preBal[t.id]:null);
+      var rl0=(typeof settings.riskPerLot==="number"&&settings.riskPerLot>0)?settings.riskPerLot:1000;
+      var rEff=(typeof t.r==="number")?t.r:((t.size>0)?p/(rl0*t.size):(((preBal[t.id]||0)>0)?p/preBal[t.id]:null));
       if(rEff!=null){s.rSum+=rEff;s.rN++;if(rEff>s.maxR)s.maxR=rEff}
       if(p>s.maxPnl){s.maxPnl=p;s.bestSym=t.symbol||""}
       if(t.setup)s.tagged++;
@@ -801,15 +807,17 @@
         if(p.tp!=null)rrTarget=Math.abs(p.tp-p.entry)/den;
         if(p.mark!=null)rrNow=((p.dir==="short")?(p.entry-p.mark):(p.mark-p.entry))/den;
       } else {
+        var rl2=(typeof settings.riskPerLot==="number"&&settings.riskPerLot>0)?settings.riskPerLot:1000;
+        var riskO=(p.size>0)?rl2*p.size:null;
+        if(riskO){
+          if(f!=null)rrNow=f/riskO;
+          if(perPt&&p.tp!=null&&p.entry!=null)rrTarget=perPt*Math.abs(p.tp-p.entry)/riskO;
+        }
         var startB2=(typeof settings.startBalance==="number"?settings.startBalance:0);
         var balE=startB2;
         flows.forEach(function(x){ if(String(x.ts)<String(p.ts)) balE+=(x.type==="withdraw"?-(x.amount||0):(x.amount||0)); });
         trades.forEach(function(x){ if(String(x.ts)<String(p.ts)) balE+=(x.pnl||0); });
-        if(balE>0){
-          if(f!=null)rrNow=f/balE;
-          if(perPt&&p.tp!=null)rrTarget=perPt*Math.abs(p.tp-p.entry)/balE;
-          if(perPt)liq=(p.dir==="short")?(p.entry+balE/perPt):(p.entry-balE/perPt);
-        }
+        if(balE>0&&perPt)liq=(p.dir==="short")?(p.entry+balE/perPt):(p.entry-balE/perPt);
       }
       var rrTxt=null;
       if(rrNow!=null&&rrTarget!=null)rrTxt="R "+rrNow.toFixed(1)+" / "+rrTarget.toFixed(1);
@@ -942,7 +950,8 @@
       host.appendChild(h);
       g.rows.forEach(function(t){
         var p=t.pnl||0;
-        var rEff=(typeof t.r==="number")?t.r:(((pre[t.id]||0)>0)?p/pre[t.id]:null);
+        var rl1=(typeof settings.riskPerLot==="number"&&settings.riskPerLot>0)?settings.riskPerLot:1000;
+        var rEff=(typeof t.r==="number")?t.r:((t.size>0)?p/(rl1*t.size):(((pre[t.id]||0)>0)?p/pre[t.id]:null));
         var bits=[];
         if(t.entry!=null&&t.exit!=null)bits.push(t.entry+" → "+t.exit);
         if(t.size!=null)bits.push(t.size+" lot"+(t.size===1?"":"s"));
@@ -1158,6 +1167,7 @@
     $("sBal").value=settings.startBalance!=null?settings.startBalance:"";
     $("sGoal").value=settings.weeklyGoalR!=null?settings.weeklyGoalR:"";
     $("sBankAt").value=settings.bankAt!=null?settings.bankAt:"";
+    $("sRiskLot").value=settings.riskPerLot!=null?settings.riskPerLot:"";
     sheet("Set",true);
   });
   $("scrimSet").addEventListener("click",function(){sheet("Set",false)});
@@ -1237,10 +1247,11 @@
   $("sSave").addEventListener("click",function(){
     if(!db){toast("Not connected.");return}
     var body={currency:"USD"};
-    var b=num("sBal"),g=num("sGoal"),ba=num("sBankAt");
+    var b=num("sBal"),g=num("sGoal"),ba=num("sBankAt"),rlv=num("sRiskLot");
     if(b!==undefined&&!isNaN(b))body.startBalance=b;
     if(g!==undefined&&!isNaN(g))body.weeklyGoalR=g;
     if(ba!==undefined&&!isNaN(ba)&&ba>0)body.bankAt=ba;
+    if(rlv!==undefined&&!isNaN(rlv)&&rlv>0)body.riskPerLot=rlv;
     db.doc("meta/settings").set(body).then(function(){sheet("Set",false);toast("Setup saved.")})
       .catch(function(){toast("Save failed.")});
   });
