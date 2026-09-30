@@ -314,8 +314,13 @@
   /* mockup fidelity: row bars, flat instruments, dim info tone */
   :root{--ink-4:#5E6678}
   .card h2 .num{color:var(--ink-4)}
-  .dhead{display:flex;align-items:center;gap:12px;padding:9px 14px;background:rgba(255,255,255,.03);border:0;border-radius:10px;font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);margin-top:10px}
+  .dhead{display:flex;align-items:center;gap:12px;padding:9px 14px;background:rgba(255,255,255,.03);border:0;border-radius:10px;font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);margin-top:10px;cursor:pointer}
+  .dhead:hover{background:rgba(255,255,255,.05)}
   .dhead .num{margin-left:auto;font-weight:600;font-size:11px;letter-spacing:0}
+  .dchev{flex:none;font-size:9px;letter-spacing:.08em;color:var(--ink-4)}
+  .dhead:hover .dchev{color:var(--ink-2)}
+  .dhead:not(:has(.num)) .dchev{margin-left:auto}
+  .dbody{padding:0 2px}
   .trow2{border-bottom:1px solid rgba(255,255,255,.05);border-radius:0;padding:10px 14px}
   .trow2 .ttime,.trow2 .tinfo{color:var(--ink-4)}
   #rchecks{background:none;border:0;border-radius:0;overflow:visible}
@@ -490,13 +495,8 @@
       <div id="dayLegend" hidden><i class="sq sp"></i>profit<i class="sq sl"></i>loss<i class="sq sb"></i>banked<i class="sq sd"></i>re-deposited</div>
     </section>
 
-    <section class="card" id="movesCard">
-      <h2>Money moves <button id="btnFlow" class="hbtn" type="button" hidden>+ Money</button></h2>
-      <div id="flist"></div>
-    </section>
-
     <section class="card" id="logCard">
-      <h2>Trade log <span class="num" id="logCount"></span></h2>
+      <h2>Trade log <button id="btnFlow" class="hbtn" type="button" hidden>+ Money</button> <span class="num" id="logCount"></span></h2>
       <div id="tlist"></div>
     </section>
   </div>
@@ -589,7 +589,7 @@
   var db=null, unsubT=null, unsubS=null, unsubF=null, unsubO=null;
   var trades=[], flows=[], settings={}, openPos=[], orders=[];
   var dir="long", flowType="deposit", detailId=null, detailKind="trade", deleteArmed=false;
-  var dailyRange=15, logLimit=25, countsDone=false, prevNet=null, seenTradeIds=null;
+  var dailyRange=15, logLimit=25, countsDone=false, prevNet=null, seenTradeIds=null, openDays={};
 
   /* count the key figures up from 0 on first load */
   function animateNums(){
@@ -925,20 +925,6 @@
     } else sb.textContent=newTxt;
     prevNet=s.net;
     sb.className="num "+(s.net>0?"win":s.net<0?"loss":"");
-    var host=$("flist"); host.innerHTML="";
-    d.fl.slice(-5).reverse().forEach(function(f){
-      var row=document.createElement("div");
-      row.className="frow2"; row.tabIndex=0; row.setAttribute("role","button");
-      var w=f.type==="withdraw";
-      row.innerHTML='<span class="ft '+(w?"wit":(f.source==="profit"?"dep":"own"))+'">'+(w?"WITHDRAW":(f.source==="profit"?"REINVEST":"DEPOSIT"))+'</span>'+
-        '<span class="fd">'+esc(dayOf(f.ts))+(f.notes?" · "+esc(f.notes):"")+'</span>'+
-        '<span class="fa num">'+(w?"-":"+")+"$"+(f.amount||0).toLocaleString("en-US")+'</span>';
-      var open=function(){showFlowDetail(f)};
-      row.addEventListener("click",open);
-      row.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();open()}});
-      host.appendChild(row);
-    });
-    if(!d.fl.length){host.innerHTML='<div class="empty" style="padding:12px 4px">Track your money: hit + MONEY when you deposit or withdraw.</div>'}
     var sp=$("heroSpark");
     if(sp){
       if(d.days.length>1){
@@ -959,25 +945,57 @@
   var MONTHS=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
   function dayLabel(d){ return MONTHS[+d.slice(5,7)-1]+" "+(+d.slice(8,10)); }
 
+  function flowRow(f){
+    var row=document.createElement("div");
+    row.className="frow2"; row.tabIndex=0; row.setAttribute("role","button");
+    var w=f.type==="withdraw";
+    row.innerHTML='<span class="ft '+(w?"wit":(f.source==="profit"?"dep":"own"))+'">'+(w?"WITHDRAW":(f.source==="profit"?"REINVEST":"DEPOSIT"))+'</span>'+
+      '<span class="fd">'+esc(String(f.ts||"").slice(11,16))+(f.notes?" · "+esc(f.notes):"")+'</span>'+
+      '<span class="fa num">'+(w?"-":"+")+"$"+(f.amount||0).toLocaleString("en-US")+'</span>';
+    var open=function(){showFlowDetail(f)};
+    row.addEventListener("click",open);
+    row.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();open()}});
+    return row;
+  }
+
   function renderList(d){
     var list=d.list, pre=(d.s&&d.s.preBal)||{};
     var host=$("tlist"); host.innerHTML="";
-    $("logCount").textContent=list.length?("last "+Math.min(list.length,logLimit)):"";
-    if(!list.length){host.innerHTML='<div class="empty">Nothing logged yet. Hit LOG TRADE and start the run.</div>';return}
-    var last=list.slice(-logLimit).reverse();
+    /* trades and money moves interleaved by time; day totals count trades only */
+    var merged=list.map(function(t){return {k:"t",ts:String(t.ts||""),o:t}})
+      .concat((d.fl||[]).map(function(f){return {k:"f",ts:String(f.ts||""),o:f}}));
+    merged.sort(function(a,b){return a.ts.localeCompare(b.ts)});
+    $("logCount").textContent=merged.length?("last "+Math.min(merged.length,logLimit)):"";
+    if(!merged.length){host.innerHTML='<div class="empty">Nothing logged yet. Hit LOG TRADE and start the run.</div>';return}
+    var last=merged.slice(-logLimit).reverse();
     var groups=[], cur=null;
-    last.forEach(function(t){
-      var d=dayOf(t.ts);
-      if(!cur||cur.day!==d){cur={day:d,rows:[],pnl:0};groups.push(cur)}
-      cur.rows.push(t); cur.pnl+=(t.pnl||0);
+    last.forEach(function(it){
+      var dy=dayOf(it.ts);
+      if(!cur||cur.day!==dy){cur={day:dy,rows:[],pnl:0,n:0};groups.push(cur)}
+      cur.rows.push(it);
+      if(it.k==="t"){cur.pnl+=(it.o.pnl||0);cur.n++;}
     });
     groups.forEach(function(g){
       var h=document.createElement("div");
-      h.className="dhead";
-      h.innerHTML='<span>'+esc(dayLabel(g.day))+' · '+g.rows.length+' trade'+(g.rows.length>1?"s":"")+'</span>'+
-        '<span class="num '+(g.pnl>0?"win":g.pnl<0?"loss":"")+'">'+fmt$(g.pnl)+'</span>';
+      h.className="dhead"; h.tabIndex=0; h.setAttribute("role","button");
+      var isOpen=!!openDays[g.day];
+      h.innerHTML='<span>'+esc(dayLabel(g.day))+(g.n?(' · '+g.n+' trade'+(g.n>1?"s":"")):"")+'</span>'+
+        (g.n?('<span class="num '+(g.pnl>0?"win":g.pnl<0?"loss":"")+'">'+fmt$(g.pnl)+'</span>'):"")+
+        '<span class="dchev">'+(isOpen?"close ▴":"expand ▾")+'</span>';
       host.appendChild(h);
-      g.rows.forEach(function(t){
+      var body=document.createElement("div");
+      body.className="dbody"; body.hidden=!isOpen;
+      host.appendChild(body);
+      var chev=h.querySelector(".dchev");
+      h.addEventListener("click",function(){
+        body.hidden=!body.hidden;
+        openDays[g.day]=!body.hidden;
+        chev.textContent=body.hidden?"expand ▾":"close ▴";
+      });
+      h.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();h.click()}});
+      g.rows.forEach(function(it){
+        if(it.k==="f"){body.appendChild(flowRow(it.o));return}
+        var t=it.o;
         var p=t.pnl||0;
         var rl1=(typeof settings.riskPerLot==="number"&&settings.riskPerLot>0)?settings.riskPerLot:1000;
         var rEff=(typeof t.r==="number")?t.r:((t.size>0)?p/(rl1*t.size):(((pre[t.id]||0)>0)?p/pre[t.id]:null));
@@ -998,10 +1016,10 @@
           '<span class="tinfo">'+esc(bits.join(" · "))+'</span></div>'+
           (l2.length?('<div class="tl2">'+esc(l2.join(" · "))+'</div>'):"")+'</div>'+
           '<span class="tpnl '+(p>0?"win":p<0?"loss":"")+'">'+fmt$(p)+'</span>';
-        host.appendChild(row);
+        body.appendChild(row);
       });
     });
-    if(list.length>logLimit){
+    if(merged.length>logLimit){
       var more=document.createElement("button");
       more.type="button"; more.className="showmore";
       more.textContent="show more";
