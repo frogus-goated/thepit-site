@@ -493,14 +493,6 @@
       <div id="dayLegend" hidden><i class="sq sp"></i>profit<i class="sq sl"></i>loss<i class="sq sb"></i>banked<i class="sq sd"></i>re-deposited</div>
     </section>
 
-    <section class="card" id="patCard">
-      <h2>Patterns <span class="num" id="patNote"></span></h2>
-      <div id="patWrap">
-        <div id="hourBox" class="chartbox"></div>
-        <div id="symList"></div>
-      </div>
-    </section>
-
     <section class="card" id="logCard">
       <h2>Trade log <span class="num" id="logCount"></span></h2>
       <div id="tlist"></div>
@@ -726,7 +718,7 @@
       }
     }
     var m2={}; trades.forEach(function(t){m2[t.id]=1}); seenTradeIds=m2;
-    renderCapital(d); renderRules(d); renderEquity(d); renderDaily(d); renderPatterns(d); renderList(d); renderOpen();
+    renderCapital(d); renderRules(d); renderEquity(d); renderDaily(d); renderList(d); renderOpen();
     if(!countsDone&&(trades.length||flows.length)){countsDone=true;animateNums()}
   }
 
@@ -767,6 +759,9 @@
         if(dt>=0&&dt<=5)fast++;
       }
     }
+    var eve=recent.filter(function(t){var h=+String(t.ts||"").slice(11,13);return h>=19&&h<=23}).length;
+    checks.push({st:eve===0?"ok":(eve<=2?"mid":"bad"), l:"Trade your hours",
+      t:eve===0?"no evening trades in the last 15 \u00B7 mornings are where you print":eve+" trade"+(eve===1?"":"s")+" taken 19h-23h in the last 15 \u00B7 evenings have cost you the most"});
     checks.push({st:fast===0?"ok":(fast===1?"mid":"bad"), l:"No revenge entries",
       t:fast+" trade"+(fast===1?"":"s")+" fired within 5 min of taking a loss"+(fast>1?" · step away after a red one":"")});
     var okN=checks.filter(function(c){return c.st==="ok"}).length;
@@ -961,67 +956,6 @@
 
   var MONTHS=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
   function dayLabel(d){ return MONTHS[+d.slice(5,7)-1]+" "+(+d.slice(8,10)); }
-
-  function renderPatterns(d){
-    var box=$("hourBox"), card=$("patCard");
-    if(!d.list.length){card.hidden=true;return}
-    card.hidden=false;
-    var hours={}, i;
-    d.list.forEach(function(t){
-      var h=+String(t.ts||"").slice(11,13); if(isNaN(h))return;
-      if(!hours[h])hours[h]={pnl:0,n:0};
-      hours[h].pnl+=(t.pnl||0); hours[h].n++;
-    });
-    var hs=Object.keys(hours).map(Number).sort(function(a,b){return a-b});
-    var best=null,worst=null;
-    hs.forEach(function(h){
-      if(best===null||hours[h].pnl>hours[best].pnl)best=h;
-      if(worst===null||hours[h].pnl<hours[worst].pnl)worst=h;
-    });
-    $("patNote").textContent=(best!=null?("best "+best+"h"):"")+(worst!=null?(" \u00B7 worst "+worst+"h"):"");
-    var W=Math.max(300,box.clientWidth||500), H=150, padL=50, padR=8, padT=10, padB=20;
-    var vals=[0]; hs.forEach(function(h){vals.push(hours[h].pnl)});
-    var min=Math.min.apply(null,vals), max=Math.max.apply(null,vals);
-    if(min===max)max=min+1;
-    var Y=function(v){return padT+(1-(v-min)/(max-min))*(H-padT-padB)};
-    var plotW=W-padL-padR, n=24, bw=Math.min(plotW/n,34);
-    var x0=padL+(plotW-bw*n)/2, y0=Y(0);
-    var bars="",lbls="";
-    for(i=0;i<24;i++){
-      var x=x0+i*bw+1, w=Math.max(2,bw-2);
-      if(hours[i]){
-        var y1=Y(hours[i].pnl), top=Math.min(y0,y1), h2=Math.max(2,Math.abs(y0-y1));
-        bars+='<rect data-i="'+i+'" x="'+x.toFixed(1)+'" y="'+top.toFixed(1)+'" width="'+w.toFixed(1)+'" height="'+h2.toFixed(1)+'" rx="2" fill="'+(hours[i].pnl>=0?"var(--win)":"var(--loss)")+'" opacity=".85"/>';
-      }
-      if(i%4===0)lbls+='<text x="'+(x+w/2)+'" y="'+(H-6)+'" text-anchor="middle" font-size="9" fill="var(--ink-4)" font-family="IBM Plex Mono,monospace">'+i+'h</text>';
-    }
-    box.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="P&L by hour of day">'+
-      '<line x1="'+padL+'" y1="'+y0+'" x2="'+(W-padR)+'" y2="'+y0+'" stroke="var(--ink-3)" stroke-width="1"/>'+bars+lbls+'</svg>';
-    var svg=box.querySelector("svg");
-    svg.addEventListener("pointermove",function(e){
-      var t=e.target;
-      if(t&&t.tagName==="rect"){
-        var h3=+t.getAttribute("data-i"), hh=hours[h3];
-        var r=svg.getBoundingClientRect(), bb=t.getBBox();
-        showTip(box,(bb.x+bb.width/2)*(r.width/W),bb.y*(r.height/H),h3+"h \u00B7 <b class=\""+(hh.pnl>0?"win":"loss")+"\">"+fmt$(hh.pnl)+"</b> \u00B7 "+hh.n+" trade"+(hh.n>1?"s":""));
-      } else hideTip();
-    });
-    svg.addEventListener("pointerleave",hideTip);
-    var syms={}, host=$("symList");
-    d.list.forEach(function(t){
-      var k=(t.symbol||"?").toUpperCase();
-      if(!syms[k])syms[k]={pnl:0,n:0};
-      syms[k].pnl+=(t.pnl||0); syms[k].n++;
-    });
-    host.innerHTML="";
-    Object.keys(syms).sort(function(a,b){return syms[b].pnl-syms[a].pnl}).forEach(function(k){
-      var v=syms[k];
-      var row=document.createElement("div");
-      row.className="symrow";
-      row.innerHTML='<span class="ss">'+esc(k)+'</span><span class="sn">'+v.n+' trade'+(v.n>1?"s":"")+'</span><span class="sp '+(v.pnl>0?"win":v.pnl<0?"loss":"")+'">'+fmt$(v.pnl)+'</span>';
-      host.appendChild(row);
-    });
-  }
 
   function renderList(d){
     var list=d.list, pre=(d.s&&d.s.preBal)||{};
