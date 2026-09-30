@@ -99,6 +99,8 @@
   .tile:first-child{border-left:0}
   .tile .v{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:21px;font-weight:600;margin-top:auto;padding-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-.01em}
   .tile .sub{font-size:11px;color:var(--ink-3);margin-top:2px}
+  #capgrid .cap,.tile{text-align:center}
+  .tile{align-items:center}
 
   /* ---- rule check instrument ---- */
   #rchecks{background:rgba(0,0,0,.24);border:1px solid var(--line-soft);border-radius:12px;overflow:hidden}
@@ -298,7 +300,7 @@
   #capgrid .lbl,.tile .lbl{font-size:10px;letter-spacing:.14em}
   #sumBal{font-size:clamp(40px,7vw,58px);letter-spacing:0;margin-top:8px}
   #capgrid{margin-top:26px;gap:14px}
-  #capgrid .cap{padding:14px 16px;border-radius:16px}
+  #capgrid .cap{padding:19px 16px 11px;border-radius:16px}
   #capgrid .cv{font-size:20px;margin-top:6px}
   .tile{padding:16px 18px}
   .tile .v{font-size:20px;margin-top:7px;padding-top:0}
@@ -449,7 +451,7 @@
           <polygon id="vneedle" points="105,38 100,50 110,50" fill="#EEC862"/>
           <circle cx="105" cy="105" r="56" fill="#11141b" stroke="rgba(238,200,98,0.3)" stroke-width="1.5"/>
           <circle cx="105" cy="105" r="49" fill="none" stroke="rgba(238,200,98,0.15)" stroke-width="1" stroke-dasharray="2 4"/>
-          <g stroke="#EEC862" stroke-width="1.6" fill="none" transform="translate(97,66)">
+          <g stroke="#EEC862" stroke-width="1.6" fill="none" transform="translate(97,74)">
             <rect x="0" y="7" width="16" height="12" rx="2.5" fill="rgba(238,200,98,0.12)"/>
             <path d="M3 7 V5 a5 5 0 0 1 10 0 V7"/>
           </g>
@@ -962,9 +964,8 @@
     var merged=list.map(function(t){return {k:"t",ts:String(t.ts||""),o:t}})
       .concat((d.fl||[]).map(function(f){return {k:"f",ts:String(f.ts||""),o:f}}));
     merged.sort(function(a,b){return a.ts.localeCompare(b.ts)});
-    $("logCount").textContent=merged.length?("last "+Math.min(merged.length,logLimit)):"";
-    if(!merged.length){host.innerHTML='<div class="empty">Nothing logged yet. Hit LOG TRADE and start the run.</div>';return}
-    var last=merged.slice(-logLimit).reverse();
+    if(!merged.length){$("logCount").textContent="";host.innerHTML='<div class="empty">Nothing logged yet. Hit LOG TRADE and start the run.</div>';return}
+    var last=merged.slice().reverse();
     var groups=[], cur=null;
     last.forEach(function(it){
       var dy=dayOf(it.ts);
@@ -972,6 +973,9 @@
       cur.rows.push(it);
       if(it.k==="t"){cur.pnl+=(it.o.pnl||0);cur.n++;}
     });
+    var allDays=groups.length;
+    groups=groups.slice(0,logLimit); /* limit is days shown, newest first */
+    $("logCount").textContent="last "+Math.min(allDays,logLimit)+" day"+(Math.min(allDays,logLimit)===1?"":"s");
     groups.forEach(function(g){
       var h=document.createElement("div");
       h.className="dhead"; h.tabIndex=0; h.setAttribute("role","button");
@@ -1016,10 +1020,10 @@
         body.appendChild(row);
       });
     });
-    if(merged.length>logLimit){
+    if(allDays>logLimit){
       var more=document.createElement("button");
       more.type="button"; more.className="showmore";
-      more.textContent="show more";
+      more.textContent="show more days";
       more.addEventListener("click",function(){logLimit+=25;render()});
       host.appendChild(more);
     }
