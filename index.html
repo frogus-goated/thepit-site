@@ -178,6 +178,10 @@
   #eqLegend[hidden]{display:none}
   #eqLegend i{display:inline-block;width:18px;height:0;border-top:2px solid var(--gold);margin-right:5px;vertical-align:2px}
   #eqLegend i.l2{border-top:2px dashed var(--ink-3)}
+  #dayLegend{display:flex;gap:14px;align-items:center;margin-top:8px;font-size:11px;color:var(--ink-3);flex-wrap:wrap}
+  #dayLegend[hidden]{display:none}
+  .sq{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+  .sq.sp{background:var(--win)} .sq.sl{background:var(--loss)} .sq.sb{background:var(--gold)} .sq.sd{background:var(--ink-3)}
   .fld label.chk{display:flex;align-items:center;gap:9px;font-size:13px;color:var(--ink-2);cursor:pointer;text-transform:none;letter-spacing:0;font-family:var(--body)}
   .fld label.chk input{accent-color:var(--gold);width:17px;height:17px;margin:0}
   #ring .lv b{font-size:19px}
@@ -267,8 +271,11 @@
   </div>
 
   <div class="card">
-    <h2>Daily P&amp;L <span class="num" id="dayRange"></span></h2>
+    <h2>Day by day
+      <span class="mini-seg"><button id="d7" type="button" aria-pressed="false">7D</button><button id="d30" type="button" aria-pressed="true">30D</button></span>
+      <span class="num" id="dayRange"></span></h2>
     <div class="chartbox" id="dayBox"></div>
+    <div id="dayLegend" hidden><i class="sq sp"></i>profit<i class="sq sl"></i>loss<i class="sq sb"></i>banked<i class="sq sd"></i>re-deposited</div>
   </div>
 
   <div class="card">
@@ -360,8 +367,10 @@
   var db=null, unsubT=null, unsubS=null, unsubF=null, unsubO=null;
   var trades=[], flows=[], settings={}, openPos=[];
   var dir="long", flowType="deposit", detailId=null, detailKind="trade", deleteArmed=false;
-  var chartMode="bal";
+  var chartMode="bal", dailyRange=30;
   try{ chartMode=localStorage.getItem("pit-chart")||"bal"; }catch(e){}
+  try{ dailyRange=+localStorage.getItem("pit-days")||30; }catch(e){}
+  if(dailyRange!==7&&dailyRange!==30)dailyRange=30;
 
   var $=function(id){return document.getElementById(id)};
   var fmt$=function(v){var s=v<0?"-":"+";var a=Math.abs(v);var t=a>=1000?a.toLocaleString("en-US",{maximumFractionDigits:0}):a.toLocaleString("en-US",{maximumFractionDigits:2});return s+"$"+t};
@@ -660,13 +669,24 @@
 
   function renderDaily(d){
     var box=$("dayBox");
-    if(!d.tradeDays.length){box.innerHTML='<div class="empty">Daily bars land here. Green over the line, copper under it.</div>';$("dayRange").textContent="";return}
-    var days=d.tradeDays.slice(-30);
-    $("dayRange").textContent="last "+days.length+" sessions";
-    var W=Math.max(300,box.clientWidth||600), H=170, padL=46, padR=12, padT=12, padB=22;
-    var min=Math.min(0,Math.min.apply(null,days.map(function(x){return x.pnl})));
-    var max=Math.max(0,Math.max.apply(null,days.map(function(x){return x.pnl})));
+    $("d30").setAttribute("aria-pressed",dailyRange===30?"true":"false");
+    $("d7").setAttribute("aria-pressed",dailyRange===7?"true":"false");
+    var days=d.days.slice(-dailyRange);
+    if(!days.length){box.innerHTML='<div class="empty">Daily bars land here. Green over the line, copper under it, gold when you bank.</div>';$("dayRange").textContent="";$("dayLegend").hidden=true;return}
+    $("dayLegend").hidden=false;
+    $("dayRange").textContent="last "+days.length+" day"+(days.length>1?"s":"");
+    /* two series per day: trade pnl, and net banked = withdrawn - deposited */
+    var series=days.map(function(day){
+      return {day:day.day, n:day.n,
+        pnl:(day.n>0?day.pnl:null),
+        bank:((day.wit||day.dep)?(day.wit-day.dep):null),
+        wit:day.wit, dep:day.dep};
+    });
+    var vals=[0];
+    series.forEach(function(x){ if(x.pnl!=null)vals.push(x.pnl); if(x.bank!=null)vals.push(x.bank); });
+    var min=Math.min.apply(null,vals), max=Math.max.apply(null,vals);
     if(min===max)max=min+1;
+    var W=Math.max(300,box.clientWidth||600), H=180, padL=50, padR=12, padT=12, padB=22;
     var Y=function(v){return padT+(1-(v-min)/(max-min))*(H-padT-padB)};
     var bw=(W-padL-padR)/days.length;
     var grid="",labels="";
@@ -675,25 +695,34 @@
       grid+='<line x1="'+padL+'" y1="'+y+'" x2="'+(W-padR)+'" y2="'+y+'" stroke="var(--line-soft)" stroke-width="1"/>';
       labels+='<text x="'+(padL-8)+'" y="'+(y+3)+'" text-anchor="end" font-size="10" fill="var(--ink-3)" font-family="IBM Plex Mono,monospace">'+(v<0?"-":"")+"$"+Math.round(Math.abs(v)).toLocaleString("en-US")+'</text>';
     }
-    var bars="";
-    days.forEach(function(day,i){
-      var x=padL+i*bw+1, w=Math.max(2,bw-2);
-      var y0=Y(0), y1=Y(day.pnl);
-      var top=Math.min(y0,y1), h=Math.max(2,Math.abs(y0-y1));
-      var rx=Math.min(4,w/2);
-      bars+='<rect data-i="'+i+'" x="'+x.toFixed(1)+'" y="'+top.toFixed(1)+'" width="'+w.toFixed(1)+'" height="'+h.toFixed(1)+'" rx="'+rx+'" fill="'+(day.pnl>=0?"var(--win)":"var(--loss)")+'" opacity=".9"/>';
+    var bars="", y0=Y(0);
+    var half=Math.max(2,bw/2-1.5);
+    series.forEach(function(x,i){
+      var x0=padL+i*bw+1;
+      var rx=Math.min(3,half/2);
+      if(x.pnl!=null){
+        var y1=Y(x.pnl), top=Math.min(y0,y1), h=Math.max(2,Math.abs(y0-y1));
+        bars+='<rect data-i="'+i+'" x="'+x0.toFixed(1)+'" y="'+top.toFixed(1)+'" width="'+half.toFixed(1)+'" height="'+h.toFixed(1)+'" rx="'+rx+'" fill="'+(x.pnl>=0?"var(--win)":"var(--loss)")+'" opacity=".9"/>';
+      }
+      if(x.bank!=null){
+        var y2=Y(x.bank), top2=Math.min(y0,y2), h2=Math.max(2,Math.abs(y0-y2));
+        bars+='<rect data-i="'+i+'" x="'+(x0+half+1).toFixed(1)+'" y="'+top2.toFixed(1)+'" width="'+half.toFixed(1)+'" height="'+h2.toFixed(1)+'" rx="'+rx+'" fill="'+(x.bank>=0?"var(--gold)":"var(--ink-3)")+'" opacity=".9"/>';
+      }
     });
-    box.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Daily P&L bars">'+
+    box.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Per day: trade P&L and net banked">'+
       grid+labels+
-      '<line x1="'+padL+'" y1="'+Y(0)+'" x2="'+(W-padR)+'" y2="'+Y(0)+'" stroke="var(--ink-3)" stroke-width="1"/>'+bars+'</svg>';
+      '<line x1="'+padL+'" y1="'+y0+'" x2="'+(W-padR)+'" y2="'+y0+'" stroke="var(--ink-3)" stroke-width="1"/>'+bars+'</svg>';
     var svg=box.querySelector("svg");
     svg.addEventListener("pointermove",function(e){
       var t=e.target;
       if(t&&t.tagName==="rect"){
-        var day=days[+t.getAttribute("data-i")];
+        var x=series[+t.getAttribute("data-i")];
         var r=svg.getBoundingClientRect();
         var bb=t.getBBox();
-        showTip(box,(bb.x+bb.width/2)*(r.width/W),bb.y*(r.height/H),esc(day.day)+' &nbsp;<b class="'+(day.pnl>0?"win":day.pnl<0?"loss":"")+'">'+fmt$(day.pnl)+'</b> · '+day.n+' trade'+(day.n>1?"s":""));
+        var html=esc(x.day);
+        if(x.pnl!=null)html+=' · P&amp;L <b class="'+(x.pnl>0?"win":x.pnl<0?"loss":"")+'">'+fmt$(x.pnl)+'</b> ('+x.n+')';
+        if(x.bank!=null)html+=' · banked <b class="'+(x.bank>=0?"":"loss")+'">'+fmt$(x.bank)+'</b>'+(x.dep?' (in $'+x.dep.toLocaleString("en-US")+')':'');
+        showTip(box,(bb.x+bb.width/2)*(r.width/W),bb.y*(r.height/H),html);
       } else hideTip();
     });
     svg.addEventListener("pointerleave",hideTip);
@@ -724,6 +753,9 @@
   var setChartMode=function(m){chartMode=m;try{localStorage.setItem("pit-chart",m)}catch(e){};render()};
   $("mBal").addEventListener("click",function(){setChartMode("bal")});
   $("mPnl").addEventListener("click",function(){setChartMode("pnl")});
+  var setDailyRange=function(n){dailyRange=n;try{localStorage.setItem("pit-days",String(n))}catch(e){};render()};
+  $("d30").addEventListener("click",function(){setDailyRange(30)});
+  $("d7").addEventListener("click",function(){setDailyRange(7)});
 
   $("btnFlow").addEventListener("click",function(){
     var d=new Date(); d.setMinutes(d.getMinutes()-d.getTimezoneOffset());
