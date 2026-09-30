@@ -391,7 +391,7 @@
   .sq{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:6px;vertical-align:-1px}
   #dayLegend,#eqLegend{margin-top:8px}
   #eqVal{font-size:18px;font-weight:600;letter-spacing:0;text-transform:none;margin-left:4px;color:var(--ink)}
-  #eqVal.win{color:var(--win)} #eqVal.loss{color:var(--loss)}
+  #eqVal.win{color:var(--gold)} #eqVal.loss{color:var(--loss)}
 </style>
 <div id="bgCandles" aria-hidden="true"></div>
 <div id="bgCandlesLit" aria-hidden="true"></div><div class="bgc cl2"></div><div class="bgc cl3"></div><div class="bgc cl4"></div><div class="bgc cl5"></div><div class="bgc cl6"></div><div class="bgc cl7"></div></div>
@@ -472,8 +472,7 @@
     </section>
 
     <section class="card chart-card">
-      <h2><span id="eqTitle">Balance</span><span id="eqVal" class="num"></span>
-        <span class="mini-seg"><button id="mBal" type="button" aria-pressed="true">BAL</button><button id="mPnl" type="button" aria-pressed="false">P&amp;L</button></span>
+      <h2><span id="eqTitle">P&amp;L curve</span><span id="eqVal" class="num"></span>
         <span class="num" id="eqRange"></span></h2>
       <div class="chartbox" id="eqBox"></div>
       <div id="eqLegend" hidden><i class="l1"></i>balance<i class="l2"></i>money in</div>
@@ -586,7 +585,7 @@
   var db=null, unsubT=null, unsubS=null, unsubF=null, unsubO=null;
   var trades=[], flows=[], settings={}, openPos=[], orders=[];
   var dir="long", flowType="deposit", detailId=null, detailKind="trade", deleteArmed=false;
-  var chartMode="bal", dailyRange=15, logLimit=25, countsDone=false, prevNet=null, seenTradeIds=null;
+  var dailyRange=15, logLimit=25, countsDone=false, prevNet=null, seenTradeIds=null;
 
   /* count the key figures up from 0 on first load */
   function animateNums(){
@@ -608,7 +607,6 @@
       requestAnimationFrame(step);
     });
   }
-  try{ chartMode=localStorage.getItem("pit-chart")||"bal"; }catch(e){}
   try{ dailyRange=+localStorage.getItem("pit-days")||15; }catch(e){}
   if(dailyRange!==15&&dailyRange!==30)dailyRange=15;
 
@@ -1026,10 +1024,7 @@
   }
   function renderEquity(d){
     var box=$("eqBox");
-    var balMode=(chartMode==="bal");
-    $("mBal").setAttribute("aria-pressed",balMode?"true":"false");
-    $("mPnl").setAttribute("aria-pressed",balMode?"false":"true");
-    $("eqTitle").textContent=balMode?"Balance":"P&L curve";
+    var balMode=false; /* balance view removed 09-30, P&L only */
     $("eqLegend").hidden=true;
     if(!d.days.length){box.innerHTML='<div class="empty">Your '+(balMode?"balance":"P&amp;L")+' curve draws itself here after the first trade or deposit.</div>';$("eqRange").textContent="";return}
     var start=(typeof settings.startBalance==="number"?settings.startBalance:0);
@@ -1230,9 +1225,6 @@
   $("fLong").addEventListener("click",function(){dir="long";this.setAttribute("aria-pressed","true");$("fShort").setAttribute("aria-pressed","false")});
   $("fShort").addEventListener("click",function(){dir="short";this.setAttribute("aria-pressed","true");$("fLong").setAttribute("aria-pressed","false")});
 
-  var setChartMode=function(m){chartMode=m;try{localStorage.setItem("pit-chart",m)}catch(e){};render()};
-  $("mBal").addEventListener("click",function(){setChartMode("bal")});
-  $("mPnl").addEventListener("click",function(){setChartMode("pnl")});
   var setDailyRange=function(n){dailyRange=n;try{localStorage.setItem("pit-days",String(n))}catch(e){};render()};
   $("d30").addEventListener("click",function(){setDailyRange(30)});
   $("d7").addEventListener("click",function(){setDailyRange(15)});
