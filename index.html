@@ -710,14 +710,14 @@
     } else { best.textContent="–"; best.className="v num"; }
     $("tGreen").textContent=d.tradeDays.length?(s.greenDays+" / "+d.tradeDays.length):"–";
 
-    if(seenTradeIds){
+    if(seenTradeIds&&Object.keys(seenTradeIds).length){
       var addedT=trades.filter(function(t){return !seenTradeIds[t.id]});
-      if(addedT.length){
+      if(addedT.length&&addedT.length<=3){
         var lt=addedT[addedT.length-1];
         toast("Trade closed: "+esc(lt.symbol||"")+" <b class=\""+((lt.pnl||0)>0?"win":"loss")+"\">"+fmt$(lt.pnl||0)+"</b>");
       }
     }
-    var m2={}; trades.forEach(function(t){m2[t.id]=1}); seenTradeIds=m2;
+    if(trades.length){ var m2={}; trades.forEach(function(t){m2[t.id]=1}); seenTradeIds=m2; }
     renderCapital(d); renderRules(d); renderEquity(d); renderDaily(d); renderList(d); renderOpen();
     if(!countsDone&&(trades.length||flows.length)){countsDone=true;animateNums()}
   }
