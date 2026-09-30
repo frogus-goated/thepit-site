@@ -34,58 +34,29 @@
   #top{display:flex;align-items:center;justify-content:space-between;padding-block:14px 10px;position:sticky;top:env(safe-area-inset-top,0px);background:linear-gradient(var(--bg) 70%,transparent);z-index:5}
   #brand{font-family:var(--display);font-weight:700;font-size:18px;letter-spacing:.14em}
   #brand b{color:var(--accent)}
-  #top button{background:none;border:1px solid var(--line);border-radius:10px;color:var(--ink-2);padding:7px 10px;cursor:pointer;font-family:var(--display);font-size:11px;letter-spacing:.08em;text-transform:uppercase}
+  #top button{background:none;border:1px solid var(--line);border-radius:8px;color:var(--ink-2);padding:7px 10px;cursor:pointer;font-family:var(--display);font-size:11px;letter-spacing:.08em;text-transform:uppercase}
   #top button:hover{color:var(--ink);border-color:var(--ink-3)}
 
-  /* hero HUD */
-  #hud{background:linear-gradient(160deg,var(--raised),var(--surface) 60%);border:1px solid var(--line);border-radius:var(--radius);padding:18px;display:flex;gap:18px;align-items:center;margin-top:6px}
-  #ring{position:relative;width:86px;height:86px;flex:none}
-  #ring svg{width:86px;height:86px;transform:rotate(-90deg)}
-  #ring .lv{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:var(--display)}
-  #ring .lv b{font-size:26px;font-weight:700;line-height:1}
-  #ring .lv span{font-size:9px;letter-spacing:.14em;color:var(--ink-3);text-transform:uppercase}
-  #hudR{flex:1;min-width:0}
-  #rank{font-family:var(--display);font-weight:700;font-size:19px;letter-spacing:.03em}
-  #rules{display:flex;gap:7px;margin-top:9px;flex-wrap:wrap}
-  .rule{font-family:var(--display);font-size:10px;font-weight:600;letter-spacing:.13em;text-transform:uppercase;border:1px solid var(--line);border-radius:7px;padding:5px 10px;color:var(--ink-3)}
-  .rule.ok{border-color:rgba(70,214,154,.4);background:var(--win-dim);color:var(--win)}
-  .rule.bad{border-color:rgba(255,122,92,.4);background:var(--loss-dim);color:var(--loss)}
-  #hudchips{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
-  .chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:99px;padding:4px 11px;font-size:12px;color:var(--ink-2)}
-  .chip .num{font-weight:600;color:var(--ink)}
-  .chip.hot{border-color:rgba(240,180,41,.45);background:var(--gold-dim);color:var(--gold)}
-  .chip.hot .num{color:var(--gold)}
-
   /* stat tiles */
-  #tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
+  #tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:18px}
   .tile{background:var(--surface);border:1px solid var(--line-soft);border-radius:var(--radius);padding:12px 14px;min-width:0}
   .tile .v{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:19px;font-weight:600;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .tile.big{grid-column:span 3;background:linear-gradient(150deg,var(--raised),var(--surface));border-color:var(--line)}
-  .tile.big .v{font-size:34px;font-weight:600}
   .tile .sub{font-size:11px;color:var(--ink-3);margin-top:2px}
 
   /* cards */
-  .card{background:var(--surface);border:1px solid var(--line-soft);border-radius:var(--radius);padding:16px;margin-top:14px}
-  .card h2{font-size:13px;font-weight:600;letter-spacing:.11em;text-transform:uppercase;color:var(--ink-2);display:flex;align-items:center;gap:8px}
+  .card{background:var(--surface);border:1px solid var(--line-soft);border-radius:var(--radius);padding:18px;margin-top:18px}
+  .card h2{font-size:13px;font-weight:600;letter-spacing:.11em;text-transform:uppercase;color:var(--ink-2);display:flex;align-items:center;gap:8px;margin:0 0 12px}
   .card h2 .num{margin-left:auto;font-size:12px;color:var(--ink-3);letter-spacing:0;text-transform:none}
-  .chartbox{position:relative;margin-top:10px}
+  .chartbox{position:relative;margin-top:2px}
   .chartbox svg{display:block;width:100%;height:auto}
   #tip{position:absolute;pointer-events:none;background:var(--raised);border:1px solid var(--line);border-radius:8px;padding:6px 9px;font-size:11px;white-space:nowrap;transform:translate(-50%,-115%);z-index:4;display:none}
   #tip b{font-family:var(--mono);font-variant-numeric:tabular-nums}
   .empty{color:var(--ink-3);font-size:13px;padding:22px 4px;text-align:center}
 
-  /* badges */
-  #badges{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:12px}
-  .badge{border:1px solid var(--line-soft);border-radius:12px;padding:12px 8px;text-align:center;color:var(--ink-3)}
-  .badge svg{width:26px;height:26px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
-  .badge .bn{font-family:var(--display);font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;margin-top:6px}
-  .badge.on{color:var(--gold);border-color:rgba(240,180,41,.4);background:var(--gold-dim)}
-  .badge.on .bn{color:var(--ink)}
-
   /* trades list */
   .trow{display:flex;align-items:center;gap:12px;padding:11px 2px;border-bottom:1px solid var(--line-soft);cursor:pointer}
   .trow:last-child{border-bottom:0}
-  .trow .dir{width:30px;height:30px;flex:none;border-radius:9px;display:flex;align-items:center;justify-content:center}
+  .trow .dir{width:30px;height:30px;flex:none;border-radius:8px;display:flex;align-items:center;justify-content:center}
   .trow .dir.long{background:var(--win-dim);color:var(--win)}
   .trow .dir.short{background:var(--loss-dim);color:var(--loss)}
   .trow .sym{font-family:var(--mono);font-weight:600;font-size:14px}
@@ -95,7 +66,7 @@
   .trow .pnl .r{font-size:11px;color:var(--ink-3)}
 
   /* FAB */
-  #fab{position:fixed;right:18px;bottom:calc(18px + env(safe-area-inset-bottom,0px));background:var(--accent);color:#0B0E17;border:0;border-radius:14px;padding:14px 20px;font-family:var(--display);font-weight:700;font-size:14px;letter-spacing:.06em;cursor:pointer;box-shadow:0 8px 24px rgba(122,140,255,.35);z-index:20}
+  #fab{position:fixed;right:18px;bottom:calc(18px + env(safe-area-inset-bottom,0px));background:var(--accent);border:0;border-radius:12px;padding:14px 20px;font-family:var(--display);font-weight:700;font-size:14px;letter-spacing:.06em;cursor:pointer;z-index:20}
   #fab:active{transform:scale(.97)}
 
   /* sheets */
@@ -113,7 +84,7 @@
   .seg button{flex:1;background:none;border:0;color:var(--ink-3);padding:10px 0;font-family:var(--display);font-weight:600;font-size:13px;letter-spacing:.06em;cursor:pointer}
   .seg button[aria-pressed="true"].bl{background:var(--win-dim);color:var(--win)}
   .seg button[aria-pressed="true"].bs{background:var(--loss-dim);color:var(--loss)}
-  .btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;border:0;border-radius:11px;padding:12px 16px;font-family:var(--display);font-weight:700;font-size:14px;letter-spacing:.05em;cursor:pointer}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;border:0;border-radius:10px;padding:12px 16px;font-family:var(--display);font-weight:700;font-size:14px;letter-spacing:.05em;cursor:pointer}
   .btn.primary{background:var(--accent);color:#0B0E17;width:100%}
   .btn.ghost{background:none;border:1px solid var(--line);color:var(--ink-2)}
   .btn.danger{background:var(--loss-dim);color:var(--loss);border:1px solid rgba(255,107,74,.35)}
@@ -128,52 +99,37 @@
   #detailrows{font-size:13px}
   #detailrows .dr{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid var(--line-soft)}
   #detailrows .dr span:first-child{color:var(--ink-3)}
-  #offnote{display:none;margin-top:14px;border:1px solid var(--line);border-radius:var(--radius);padding:14px;color:var(--ink-2);font-size:13px;background:var(--surface)}
+  #offnote{display:none;margin-top:18px;border:1px solid var(--line);border-radius:var(--radius);padding:16px;color:var(--ink-2);font-size:13px;background:var(--surface)}
 
   @media (max-width:520px){
-    #hud{gap:14px;padding:15px}
-    #ring,#ring svg{width:74px;height:74px}
-    #ring .lv b{font-size:22px}
     #tiles{grid-template-columns:repeat(2,1fr)}
-    .tile.big{grid-column:span 2}
-    #badges{grid-template-columns:repeat(4,1fr)}
   }
   @media (prefers-reduced-motion:reduce){ *{transition:none!important;animation:none!important} }
 
   /* champagne chronograph overrides (design panel 2026-09-30) */
   #fab{background:linear-gradient(180deg,#F7E9BE 0%,var(--gold) 30%,#D9AF4C 62%,#A87F2A 100%);color:#231A05;border-radius:12px;letter-spacing:.14em;box-shadow:0 10px 28px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,246,220,.8),inset 0 -1px 0 rgba(84,60,12,.65)}
-  .btn.primary{color:#231A05;letter-spacing:.12em}
-  #ring svg circle:first-of-type{stroke:var(--line);stroke-width:2;stroke-dasharray:1 2.98}
-  #xpfill{background:linear-gradient(90deg,#8F6D24,var(--gold) 55%,#F7E9BE)}
+  .btn.primary{background:linear-gradient(180deg,#F7E9BE 0%,var(--gold) 30%,#D9AF4C 62%,#A87F2A 100%);color:#231A05;letter-spacing:.12em;box-shadow:inset 0 1px 0 rgba(255,246,220,.8),inset 0 -1px 0 rgba(84,60,12,.65)}
   #brand{font-size:15px;font-weight:600;letter-spacing:.34em}
-  #rank{font-size:17px;letter-spacing:.08em}
-  .card h2{font-weight:500;letter-spacing:.16em}
-  .lbl{letter-spacing:.18em}
-  #top button{letter-spacing:.16em}
-  #hud{border-color:rgba(212,187,135,.28);box-shadow:inset 0 1px 0 rgba(238,214,150,.08)}
-  .tile.big{border-color:rgba(212,187,135,.30);box-shadow:inset 0 1px 0 rgba(238,214,150,.07)}
-  .chip.hot{border-color:rgba(238,200,98,.45)}
-  .badge.on{border-color:rgba(238,200,98,.38)}
+  .card h2{font-weight:500;letter-spacing:.14em}
   .btn.danger{border-color:rgba(255,122,92,.35)}
   #toast{border-color:rgba(238,200,98,.32)}
   .scrim{background:rgba(6,5,3,.64)}
-  .badge .bn{letter-spacing:.1em}
   .sheet{border-radius:16px 16px 0 0}
   .mini-seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;margin-left:2px}
   .mini-seg button{background:none;border:0;color:var(--ink-3);font-family:var(--display);font-size:10px;font-weight:600;letter-spacing:.1em;padding:4px 9px;cursor:pointer}
   .mini-seg button[aria-pressed="true"]{background:var(--accent-dim);color:var(--accent)}
-  #capgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:12px}
+  #capgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px;padding-top:14px;border-top:1px solid var(--line-soft)}
   #capgrid .cap{border:1px solid var(--line-soft);border-radius:10px;padding:10px 12px;min-width:0}
   #capgrid .cv{font-size:17px;font-weight:600;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   @media (max-width:520px){ #capgrid{grid-template-columns:repeat(2,1fr)} }
-  .frow2{display:flex;align-items:center;gap:10px;padding:9px 2px;border-bottom:1px solid var(--line-soft);font-size:13px;cursor:pointer}
+  .frow2{display:flex;align-items:center;gap:12px;padding:11px 2px;border-bottom:1px solid var(--line-soft);font-size:13px;cursor:pointer}
   .frow2:last-child{border-bottom:0}
-  .frow2 .ft{font-family:var(--display);font-size:10px;font-weight:600;letter-spacing:.12em;padding:3px 8px;border-radius:7px}
+  .frow2 .ft{font-family:var(--display);font-size:10px;font-weight:600;letter-spacing:.12em;padding:3px 8px;border-radius:6px}
   .frow2 .ft.dep{background:var(--gold-dim);color:var(--gold)}
   .frow2 .ft.wit{background:var(--accent-dim);color:var(--accent)}
   .frow2 .fd{color:var(--ink-3);font-size:11px}
-  .frow2 .fa{margin-left:auto;font-weight:600}
-  #flist{margin-top:10px}
+  .frow2 .fa{margin-left:auto;font-weight:600;font-size:14px}
+  #flist{margin-top:12px;border-top:1px solid var(--line-soft);padding-top:4px}
   #eqLegend{display:flex;gap:14px;align-items:center;margin-top:8px;font-size:11px;color:var(--ink-3)}
   #eqLegend[hidden]{display:none}
   #eqLegend i{display:inline-block;width:18px;height:0;border-top:2px solid var(--gold);margin-right:5px;vertical-align:2px}
@@ -184,26 +140,37 @@
   .sq.sp{background:var(--win)} .sq.sl{background:var(--loss)} .sq.sb{background:var(--gold)} .sq.sd{background:var(--ink-3)}
   .fld label.chk{display:flex;align-items:center;gap:9px;font-size:13px;color:var(--ink-2);cursor:pointer;text-transform:none;letter-spacing:0;font-family:var(--body)}
   .fld label.chk input{accent-color:var(--gold);width:17px;height:17px;margin:0}
-  #ring .lv b{font-size:19px}
-  #ring .lv b:only-child{font-size:19px}
-  #openCard{border-color:rgba(238,200,98,.35)}
+  .hbtn{margin-left:auto;background:none;border:1px solid var(--line);border-radius:8px;color:var(--ink-2);padding:5px 10px;cursor:pointer;font-size:10px;font-weight:600;text-transform:uppercase}
+  .hbtn:hover{color:var(--ink);border-color:var(--ink-3)}
+
+  /* typography pass: Cinzel only at 13px and up, micro labels go mono */
+  .lbl,.fld label,.mini-seg button,#top button,.frow2 .ft,.hbtn{font-family:var(--mono);font-weight:500;letter-spacing:.08em}
+  .lbl{font-size:10px;letter-spacing:.1em}
+  .seg button{font-family:var(--mono);font-size:12px;letter-spacing:.1em}
+  .tile .v{font-size:20px;margin-top:4px}
+  #capgrid .cv{font-size:19px}
+  #sumBal{letter-spacing:-.01em}
+  #eqLegend,#dayLegend{font-family:var(--mono);font-size:10px;letter-spacing:.05em}
+  .trow .meta{font-size:12px}
+  .frow2 .fd{font-size:12px}
+  #openCard{border-color:rgba(212,187,135,.30);box-shadow:inset 0 1px 0 rgba(238,214,150,.07)}
   .tpsl{font-size:11px;color:var(--ink-3)}
-  #heroRow{display:flex;gap:24px;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;margin-top:14px}
-  #heroL{flex:1 1 200px;min-width:0}
-  #heroV{flex:0 1 300px;min-width:230px}
-  #vpct{font-family:var(--mono);font-weight:600;font-size:24px;color:var(--gold);margin-top:2px}
+  #heroRow{display:grid;grid-template-columns:1fr minmax(230px,300px) 1fr;gap:14px 24px;align-items:start;margin-top:2px}
+  #heroL{grid-column:1;min-width:0}
+  #heroV{grid-column:2;width:100%;text-align:center}
+  @media (max-width:640px){#heroRow{grid-template-columns:1fr}#heroV{grid-column:1;text-align:left}}
+  #vpct{font-family:var(--mono);font-weight:600;font-size:28px;color:var(--gold);margin-top:2px}
   #vbar{height:6px;background:var(--line-soft);border-radius:99px;overflow:hidden;margin-top:8px}
   #vfill{height:100%;width:0%;background:linear-gradient(90deg,#8F6D24,var(--gold) 55%,#F7E9BE);border-radius:99px;transition:width .6s cubic-bezier(.2,.8,.2,1)}
-  #vaddr{display:flex;gap:7px;align-items:center;margin-top:9px}
-  #vaddr code{flex:1;min-width:0;font-family:var(--mono);font-size:10px;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:7px 9px;overflow-wrap:anywhere;color:var(--ink-2)}
-  #vaddr button{background:none;border:1px solid var(--line);border-radius:8px;color:var(--ink-2);padding:6px 10px;cursor:pointer;font-family:var(--display);font-size:10px;font-weight:600;letter-spacing:.12em}
-  #vaddr button:hover{color:var(--gold);border-color:rgba(238,200,98,.45)}
+  #vaddr{margin-top:9px}
+  #vaddr code{display:block;font-family:var(--mono);font-size:10px;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:7px 9px;overflow-wrap:anywhere;color:var(--ink-2);cursor:pointer}
+  #vaddr code:hover,#vaddr code:focus-visible{color:var(--gold);border-color:rgba(238,200,98,.45)}
   #sumCard{border-color:rgba(212,187,135,.30);box-shadow:inset 0 1px 0 rgba(238,214,150,.07);margin-top:6px}
   #sumBal{font-size:36px;font-weight:600;line-height:1.15}
   #sumBal.loss{color:var(--loss)}
   #sumBal.win{color:var(--win)}
   #sumSub{font-size:12px;color:var(--ink-3);margin-top:4px}
-  #capgrid .cap{border:0;padding:10px 0 0 0}
+  #capgrid .cap{border:0;padding:0}
   .chk2{display:flex;align-items:flex-start;gap:11px;padding:10px 2px;border-bottom:1px solid var(--line-soft)}
   .chk2:last-child{border-bottom:0}
   .chk2 .dot{width:8px;height:8px;border-radius:50%;background:var(--ink-3);margin-top:5px;flex:none}
@@ -212,7 +179,7 @@
   .chk2 .dot.bad{background:var(--loss)}
   .chk2 .cl{font-size:13px;font-weight:600}
   .chk2 .ct{font-size:12px;color:var(--ink-3);margin-top:1px}
-  #rchecks{margin-top:6px}
+  #rchecks{margin-top:0}
 </style>
 
 <div id="wrap">
@@ -222,7 +189,7 @@
   </div>
 
   <div class="card" id="sumCard">
-    <h2>Account <button id="btnFlow" type="button" style="margin-left:auto;background:none;border:1px solid var(--line);border-radius:8px;color:var(--ink-2);padding:5px 10px;cursor:pointer;font-family:var(--display);font-size:10px;font-weight:600;letter-spacing:.14em">+ MONEY</button></h2>
+    <h2>Account <button id="btnFlow" class="hbtn" type="button">+ MONEY</button></h2>
     <div id="heroRow">
       <div id="heroL">
         <div class="lbl">Profit</div>
@@ -233,7 +200,7 @@
         <div class="lbl">BTC vault</div>
         <div id="vpct" class="num">&ndash;</div>
         <div id="vbar"><div id="vfill"></div></div>
-        <div id="vaddr"><code id="vaddrTxt">bc1q6947reqr6weujqra7s8ahrq06tz9hph3lgh8l6</code><button id="vcopy" type="button">COPY</button></div>
+        <div id="vaddr"><code id="vaddrTxt" role="button" tabindex="0" title="Click to copy">bc1q6947reqr6weujqra7s8ahrq06tz9hph3lgh8l6</code></div>
       </div>
     </div>
     <div id="capgrid">
@@ -614,7 +581,7 @@
       d.days.forEach(function(day,i){cum+=day.pnl;pts.push({x:i+1,v:cum,day:day.day,dpnl:day.pnl})});
     }
     $("eqRange").textContent=d.days[0].day+" → "+d.days[d.days.length-1].day;
-    var W=Math.max(300,box.clientWidth||600), H=200, padL=50, padR=12, padT=14, padB=22;
+    var W=Math.max(300,box.clientWidth||600), H=180, padL=50, padR=12, padT=12, padB=22;
     var vals=pts.map(function(p){return p.v});
     if(balMode) pts.forEach(function(p){vals.push(p.m)});
     var min=balMode?Math.min.apply(null,vals):Math.min(0,Math.min.apply(null,vals));
@@ -881,14 +848,15 @@
       }
     }catch(e){}
   })();
-  $("vcopy").addEventListener("click",function(){
-    var b=this;
+  var copyAddr=function(){
     navigator.clipboard.writeText(SAVINGS_ADDR).then(function(){
-      b.textContent="COPIED"; setTimeout(function(){b.textContent="COPY"},1500);
+      toast("Address copied.");
     }).catch(function(){
-      try{var rg=document.createRange();rg.selectNodeContents($("vaddrTxt"));var sl=getSelection();sl.removeAllRanges();sl.addRange(rg);}catch(e){}
+      try{var rg=document.createRange();rg.selectNodeContents($("vaddrTxt"));var sl=getSelection();sl.removeAllRanges();sl.addRange(rg);toast("Copy blocked, address selected.");}catch(e){}
     });
-  });
+  };
+  $("vaddrTxt").addEventListener("click",copyAddr);
+  $("vaddrTxt").addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();copyAddr()}});
 
   /* ---------- resize ---------- */
   var rT=null;
