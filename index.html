@@ -177,6 +177,8 @@
   #eqLegend[hidden]{display:none}
   #eqLegend i{display:inline-block;width:18px;height:0;border-top:2px solid var(--gold);margin-right:5px;vertical-align:2px}
   #eqLegend i.l2{border-top:2px dashed var(--ink-3)}
+  .fld label.chk{display:flex;align-items:center;gap:9px;font-size:13px;color:var(--ink-2);cursor:pointer;text-transform:none;letter-spacing:0;font-family:var(--body)}
+  .fld label.chk input{accent-color:var(--gold);width:17px;height:17px;margin:0}
 </style>
 
 <div id="wrap">
@@ -220,7 +222,7 @@
   <div class="card">
     <h2>Capital <span class="num" id="capNote"></span><button id="btnFlow" type="button" style="margin-left:auto;background:none;border:1px solid var(--line);border-radius:8px;color:var(--ink-2);padding:5px 10px;cursor:pointer;font-family:var(--display);font-size:10px;font-weight:600;letter-spacing:.14em">+ MONEY</button></h2>
     <div id="capgrid">
-      <div class="cap"><div class="lbl">Deposited</div><div class="cv num" id="cDep">$0</div></div>
+      <div class="cap"><div class="lbl">Invested</div><div class="cv num" id="cDep">$0</div></div>
       <div class="cap"><div class="lbl">Profit</div><div class="cv num" id="cProf">$0</div></div>
       <div class="cap"><div class="lbl">Withdrawn</div><div class="cv num" id="cWit">$0</div></div>
       <div class="cap"><div class="lbl">Reinvested</div><div class="cv num" id="cRei">$0</div></div>
@@ -313,6 +315,7 @@
     <div class="fld"><label for="wAmt">Amount $</label><input id="wAmt" type="number" step="any" inputmode="decimal" placeholder="500"></div>
     <div class="fld"><label for="wWhen">When</label><input id="wWhen" type="datetime-local"></div>
   </div>
+  <div class="fld" id="wSrcWrap"><label class="chk"><input type="checkbox" id="wSrc" checked> From my profit (reinvest)</label></div>
   <div class="fld"><label for="wNote">Note</label><input id="wNote" placeholder="optional" autocomplete="off"></div>
   <button class="btn primary" id="wSave" type="button">SAVE</button>
 </div>
@@ -421,8 +424,11 @@
       if(g>=5)s.greenWeek=true;
     }
     if(s.maxPnl===-Infinity)s.maxPnl=0;
-    s.dep=0; s.wit=0;
-    fl.forEach(function(f){ if(f.type==="withdraw")s.wit+=(f.amount||0); else s.dep+=(f.amount||0); });
+    s.dep=0; s.wit=0; s.rei=0;
+    fl.forEach(function(f){
+      if(f.type==="withdraw"){s.wit+=(f.amount||0)}
+      else {s.dep+=(f.amount||0); if(f.source==="profit")s.rei+=(f.amount||0);}
+    });
     return {list:list,fl:fl,days:days,tradeDays:tradeDays,s:s};
   }
 
@@ -462,20 +468,20 @@
   function renderCapital(d){
     var s=d.s;
     var start=(typeof settings.startBalance==="number"?settings.startBalance:0);
-    var depTot=start+s.dep, rei=s.net-s.wit;
-    $("cDep").textContent=fmtBal(depTot);
+    var own=start+s.dep-s.rei;
+    $("cDep").textContent=fmtBal(own);
     var prof=$("cProf");
     prof.textContent=s.net===0?"$0":fmt$(s.net); prof.className="cv num "+(s.net>0?"win":s.net<0?"loss":"");
     $("cWit").textContent=fmtBal(s.wit);
-    var re=$("cRei"); re.textContent=s.net===0&&s.wit===0?"$0":fmt$(rei);
-    re.className="cv num "+(rei>0?"win":rei<0?"loss":"");
-    $("capNote").textContent=(depTot||s.wit)?("balance "+fmtBal(start+s.dep-s.wit+s.net)):"";
+    var re=$("cRei"); re.textContent=fmtBal(s.rei);
+    re.className="cv num "+(s.rei>0?"win":"");
+    $("capNote").textContent=(start+s.dep+s.wit)?("balance "+fmtBal(start+s.dep-s.wit+s.net)):"";
     var host=$("flist"); host.innerHTML="";
     d.fl.slice(-5).reverse().forEach(function(f){
       var row=document.createElement("div");
       row.className="frow2"; row.tabIndex=0; row.setAttribute("role","button");
       var w=f.type==="withdraw";
-      row.innerHTML='<span class="ft '+(w?"wit":"dep")+'">'+(w?"WITHDRAW":"DEPOSIT")+'</span>'+
+      row.innerHTML='<span class="ft '+(w?"wit":"dep")+'">'+(w?"WITHDRAW":(f.source==="profit"?"REINVEST":"DEPOSIT"))+'</span>'+
         '<span class="fd">'+esc(dayOf(f.ts))+(f.notes?" · "+esc(f.notes):"")+'</span>'+
         '<span class="fa num">'+(w?"-":"+")+"$"+(f.amount||0).toLocaleString("en-US")+'</span>';
       var open=function(){showFlowDetail(f)};
@@ -686,8 +692,8 @@
     sheet("Flow",true); $("wAmt").focus();
   });
   $("scrimFlow").addEventListener("click",function(){sheet("Flow",false)});
-  $("wDep").addEventListener("click",function(){flowType="deposit";this.setAttribute("aria-pressed","true");$("wWit").setAttribute("aria-pressed","false")});
-  $("wWit").addEventListener("click",function(){flowType="withdraw";this.setAttribute("aria-pressed","true");$("wDep").setAttribute("aria-pressed","false")});
+  $("wDep").addEventListener("click",function(){flowType="deposit";this.setAttribute("aria-pressed","true");$("wWit").setAttribute("aria-pressed","false");$("wSrcWrap").hidden=false});
+  $("wWit").addEventListener("click",function(){flowType="withdraw";this.setAttribute("aria-pressed","true");$("wDep").setAttribute("aria-pressed","false");$("wSrcWrap").hidden=true});
   $("wSave").addEventListener("click",function(){
     if(!db){toast("Not connected.");return}
     var amt=num("wAmt");
@@ -696,6 +702,7 @@
     var ts=when.toISOString().slice(0,19)+"Z";
     var id="f-"+ts.slice(0,10).replace(/-/g,"")+"-"+Math.random().toString(36).slice(2,6);
     var f={id:id,ts:ts,type:flowType,amount:amt};
+    if(flowType==="deposit"&&$("wSrc").checked)f.source="profit";
     if($("wNote").value.trim())f.notes=$("wNote").value.trim();
     var btn=$("wSave"); btn.disabled=true;
     db.collection("flows").doc(id).set(f).then(function(){
@@ -766,7 +773,7 @@
   function showFlowDetail(f){
     detailId=f.id; detailKind="flow"; deleteArmed=false;
     $("detDelete").textContent="DELETE";
-    $("detTitle").textContent=(f.type==="withdraw"?"WITHDRAW":"DEPOSIT");
+    $("detTitle").textContent=(f.type==="withdraw"?"WITHDRAW":(f.source==="profit"?"REINVEST":"DEPOSIT"));
     var rows=[["Date",dayOf(f.ts)],["Amount",fmtBal(f.amount||0)],["Notes",f.notes||"–"]];
     $("detailrows").innerHTML=rows.map(function(r){
       return '<div class="dr"><span>'+esc(r[0])+'</span><span class="num">'+esc(r[1])+'</span></div>';
