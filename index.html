@@ -822,7 +822,7 @@
         row.innerHTML=
           '<div class="dir '+(p.dir==="short"?"short":"long")+'"><svg class="ic" viewBox="0 0 24 24">'+
           (p.dir==="short"?'<path d="M12 5v14M6 13l6 6 6-6"/>':'<path d="M12 19V5M6 11l6-6 6 6"/>')+'</svg></div>'+
-          '<div><div class="sym">'+esc((p.symbol||"?").toUpperCase())+' <span class="tpsl">x'+esc(p.size!=null?p.size:"?")+'</span></div>'+
+          '<div><div class="sym">'+esc((p.symbol||"?").toUpperCase())+' <span class="tpsl">'+esc(p.size!=null?(p.size+" lot"+(p.size===1?"":"s")):"?")+'</span></div>'+
           '<div class="meta num"><span class="omark"></span></div></div>'+
           '<div class="pnl"><div class="num ofloat"></div><div class="r">floating</div></div>';
         host.appendChild(row);
@@ -945,7 +945,7 @@
         var rEff=(typeof t.r==="number")?t.r:(((pre[t.id]||0)>0)?p/pre[t.id]:null);
         var bits=[];
         if(t.entry!=null&&t.exit!=null)bits.push(t.entry+" → "+t.exit);
-        if(t.size!=null)bits.push("x"+t.size);
+        if(t.size!=null)bits.push(t.size+" lot"+(t.size===1?"":"s"));
         if(rEff!=null)bits.push((rEff>=0?"+":"")+rEff.toFixed(2)+"R");
         if(t.fees!=null)bits.push("fees $"+t.fees);
         var l2=[];
