@@ -347,6 +347,7 @@
   <h2>Setup</h2>
   <div class="fld"><label for="sBal">Balance before tracking $ (optional)</label><input id="sBal" type="number" step="any" inputmode="decimal" placeholder="0"></div>
   <div class="fld"><label for="sGoal">Weekly goal (R)</label><input id="sGoal" type="number" step="any" inputmode="decimal" placeholder="10"></div>
+  <div class="fld"><label for="sBankAt">Bank when balance hits $</label><input id="sBankAt" type="number" step="any" inputmode="decimal" placeholder="2500"></div>
   <button class="btn primary" id="sSave" type="button">SAVE</button>
 </div>
 
@@ -449,6 +450,17 @@
     var startB=(typeof settings.startBalance==="number"?settings.startBalance:0);
     s.own=startB+s.dep-s.rei;
     s.lastDay=days.length?days[days.length-1].day:null;
+    /* running balance right before each trade (flows + trades in time order) */
+    var evs=[];
+    list.forEach(function(t){evs.push({ts:String(t.ts||""),k:"t",o:t})});
+    fl.forEach(function(f){evs.push({ts:String(f.ts||""),k:"f",o:f})});
+    evs.sort(function(a,b){return a.ts.localeCompare(b.ts)});
+    var runBal=startB, preBal={};
+    evs.forEach(function(e){
+      if(e.k==="f"){ runBal+=(e.o.type==="withdraw"?-(e.o.amount||0):(e.o.amount||0)); }
+      else { preBal[e.o.id]=runBal; runBal+=(e.o.pnl||0); }
+    });
+    s.preBal=preBal;
     return {list:list,fl:fl,days:days,tradeDays:tradeDays,s:s};
   }
 
@@ -485,9 +497,13 @@
     checks.push({st:s.net>0?"ok":"bad", l:"Stay in profit",
       t:fmt$(s.net)+" all time"+(s.net>0?"":" · priority one: get back over zero")});
     var pct=s.net>0?Math.round(Math.min(1,s.wit/s.net)*100):0;
-    var gap=(s.lastWitDay&&s.lastDay)?Math.round((new Date(s.lastDay+"T00:00:00Z")-new Date(s.lastWitDay+"T00:00:00Z"))/864e5):null;
-    checks.push({st:(pct>=50&&gap!=null&&gap<=7)?"ok":(pct>=25?"mid":"bad"), l:"Bank often",
-      t:pct+"% of profit banked"+(gap!=null?(" · last bank "+(gap<=0?"today":gap+"d ago")):" · nothing banked yet")});
+    var bankAt=(typeof settings.bankAt==="number"&&settings.bankAt>0)?settings.bankAt:2500;
+    var over=recent.filter(function(t){return (s.preBal[t.id]||0)>=bankAt}).length;
+    var bankFmt=bankAt>=1000?("$"+(bankAt/1000)+"k"):("$"+bankAt);
+    checks.push({st:over===0?"ok":(over===1?"mid":"bad"), l:"Bank often",
+      t:over===0
+        ? "no trades taken with "+bankFmt+"+ sitting on the balance · "+pct+"% of profit banked"
+        : over+" trade"+(over===1?"":"s")+" taken with "+bankFmt+"+ on the balance (last 15) · bank it before you trade it"});
     if(al>0&&aw>0){
       var ratio=aw/al;
       checks.push({st:ratio>=2.5?"ok":(ratio>=1.2?"mid":"bad"), l:"Win 3x what you lose",
@@ -796,6 +812,7 @@
   $("btnSettings").addEventListener("click",function(){
     $("sBal").value=settings.startBalance!=null?settings.startBalance:"";
     $("sGoal").value=settings.weeklyGoalR!=null?settings.weeklyGoalR:"";
+    $("sBankAt").value=settings.bankAt!=null?settings.bankAt:"";
     sheet("Set",true);
   });
   $("scrimSet").addEventListener("click",function(){sheet("Set",false)});
@@ -875,9 +892,10 @@
   $("sSave").addEventListener("click",function(){
     if(!db){toast("Not connected.");return}
     var body={currency:"USD"};
-    var b=num("sBal"),g=num("sGoal");
+    var b=num("sBal"),g=num("sGoal"),ba=num("sBankAt");
     if(b!==undefined&&!isNaN(b))body.startBalance=b;
     if(g!==undefined&&!isNaN(g))body.weeklyGoalR=g;
+    if(ba!==undefined&&!isNaN(ba)&&ba>0)body.bankAt=ba;
     db.doc("meta/settings").set(body).then(function(){sheet("Set",false);toast("Setup saved.")})
       .catch(function(){toast("Save failed.")});
   });
