@@ -471,11 +471,6 @@
       <div id="rchecks"></div>
     </section>
 
-    <section class="card" id="movesCard">
-      <h2>Money moves <button id="btnFlow" class="hbtn" type="button" hidden>+ Money</button></h2>
-      <div id="flist"></div>
-    </section>
-
     <section class="card chart-card">
       <h2><span id="eqTitle">Balance</span><span id="eqVal" class="num"></span>
         <span class="mini-seg"><button id="mBal" type="button" aria-pressed="true">BAL</button><button id="mPnl" type="button" aria-pressed="false">P&amp;L</button></span>
@@ -490,6 +485,11 @@
         <span class="num" id="dayRange"></span></h2>
       <div class="chartbox" id="dayBox"></div>
       <div id="dayLegend" hidden><i class="sq sp"></i>profit<i class="sq sl"></i>loss<i class="sq sb"></i>banked<i class="sq sd"></i>re-deposited</div>
+    </section>
+
+    <section class="card" id="movesCard">
+      <h2>Money moves <button id="btnFlow" class="hbtn" type="button" hidden>+ Money</button></h2>
+      <div id="flist"></div>
     </section>
 
     <section class="card" id="logCard">
@@ -733,8 +733,6 @@
     var aw=rw.length?rw.reduce(function(a,t){return a+t.pnl},0)/rw.length:0;
     var al=rl.length?-rl.reduce(function(a,t){return a+t.pnl},0)/rl.length:0;
     var checks=[];
-    checks.push({st:s.net>0?"ok":"bad", l:"Stay in profit",
-      t:fmt$(s.net)+" all time"+(s.net>0?"":" · priority one: get back over zero")});
     var pct=s.net>0?Math.round(Math.min(1,s.wit/s.net)*100):0;
     var bankAt=(typeof settings.bankAt==="number"&&settings.bankAt>0)?settings.bankAt:2500;
     var over=recent.filter(function(t){return (s.preBal[t.id]||0)>=bankAt}).length;
@@ -758,9 +756,6 @@
         if(dt>=0&&dt<=5)fast++;
       }
     }
-    var eve=recent.filter(function(t){var h=+String(t.ts||"").slice(11,13);return h>=19&&h<=23}).length;
-    checks.push({st:eve===0?"ok":(eve<=2?"mid":"bad"), l:"Trade your hours",
-      t:eve===0?"no evening trades in the last 15 \u00B7 mornings are where you print":eve+" trade"+(eve===1?"":"s")+" taken 19h-23h in the last 15 \u00B7 evenings have cost you the most"});
     checks.push({st:fast===0?"ok":(fast===1?"mid":"bad"), l:"No revenge entries",
       t:fast+" trade"+(fast===1?"":"s")+" fired within 5 min of taking a loss"+(fast>1?" · step away after a red one":"")});
     var okN=checks.filter(function(c){return c.st==="ok"}).length;
@@ -862,7 +857,7 @@
         if(d.elFill)requestAnimationFrame(function(){d.elFill.style.width=prog.toFixed(1)+"%"});
       }
       d.elF.className="num ofloat "+(f>0?"win":f<0?"loss":"");
-      if(f!=null){ tweenNum(d.elF,d.float,f,f===Math.round(f)?0:2,"",600); d.float=f; }
+      if(f!=null){ tweenNum(d.elF,d.float,f,f===Math.round(f)?0:2,"",380); d.float=f; }
       d.elM.textContent=(p.entry!=null?p.entry:"?")+" \u2192 "+(p.mark!=null?p.mark:"?")+"  \u00B7  TP "+(p.tp!=null?p.tp:"\u2013")+" \u00B7 "+(p.sl!=null?("SL "+p.sl):(liq!=null?("LIQ ~"+liq.toFixed(1)):"SL \u2013"));
       if(prog!=null&&d.elFill){
         d.elFill.style.width=prog.toFixed(1)+"%";
@@ -1109,12 +1104,12 @@
       var p=pts[idx];
       cross.setAttribute("x1",X(p.x));cross.setAttribute("x2",X(p.x));cross.setAttribute("opacity",".6");
       var html=balMode
-        ? esc(p.day)+' &nbsp;balance <b>'+fmtBal(p.v)+'</b> · in <b>'+fmtBal(p.m)+'</b>'+(p.dpnl?' · <b class="'+(p.dpnl>0?"win":"loss")+'">'+fmt$(p.dpnl)+'</b>':"")
-        : esc(p.day)+' &nbsp;<b class="'+(p.dpnl>0?"win":p.dpnl<0?"loss":"")+'">'+fmt$(p.dpnl)+'</b> &nbsp;total <b>'+fmt$(p.v)+'</b>';
+        ? '<b>'+fmtBal(p.v)+'</b>'
+        : '<b class="'+(p.dpnl>0?"win":p.dpnl<0?"loss":"")+'">'+fmt$(p.dpnl)+'</b>';
       if(idx>0){
         var pv=pts[idx-1].v, dl=p.v-pv;
         var pc=(pv!==0)?(dl/Math.abs(pv)*100):null;
-        html+=' · <b class="'+(dl>0?"win":dl<0?"loss":"")+'">'+fmt$(dl)+(pc!=null?' ('+(pc>=0?"+":"")+pc.toFixed(1)+'%)':"")+'</b> vs prev day';
+        if(pc!=null)html+=' <b class="'+(dl>0?"win":dl<0?"loss":"")+'">('+(pc>=0?"+":"")+pc.toFixed(1)+'%)</b>';
       }
       showTip(box,X(p.x)*(r.width/W),Y(p.v)*(r.height/H),html);
     };
@@ -1191,16 +1186,17 @@
         var x=series[+t.getAttribute("data-i")];
         var r=svg.getBoundingClientRect();
         var bb=t.getBBox();
-        var html=esc(x.day);
-        if(x.pnl!=null)html+=' · P&amp;L <b class="'+(x.pnl>0?"win":x.pnl<0?"loss":"")+'">'+fmt$(x.pnl)+'</b> ('+x.n+')';
-        if(x.bank!=null)html+=' · banked <b class="'+(x.bank>=0?"":"loss")+'">'+fmt$(x.bank)+'</b>'+(x.dep?' (in $'+x.dep.toLocaleString("en-US")+')':'');
+        var html="";
         if(x.pnl!=null){
+          html='<b class="'+(x.pnl>0?"win":x.pnl<0?"loss":"")+'">'+fmt$(x.pnl)+'</b>';
           var pi=+t.getAttribute("data-i"), prev=null;
           for(var q=pi-1;q>=0;q--){ if(series[q].pnl!=null){prev=series[q];break} }
-          if(prev){
-            var dd=x.pnl-prev.pnl, pp=(prev.pnl!==0)?(dd/Math.abs(prev.pnl)*100):null;
-            html+=' · <b class="'+(dd>0?"win":dd<0?"loss":"")+'">'+fmt$(dd)+(pp!=null?' ('+(pp>=0?"+":"")+pp.toFixed(0)+'%)':"")+'</b> vs prev day';
+          if(prev&&prev.pnl!==0){
+            var dd=x.pnl-prev.pnl, pp=dd/Math.abs(prev.pnl)*100;
+            html+=' <b class="'+(dd>0?"win":dd<0?"loss":"")+'">('+(pp>=0?"+":"")+pp.toFixed(0)+'%)</b>';
           }
+        } else if(x.bank!=null){
+          html='<b>'+fmt$(x.bank)+'</b>';
         }
         showTip(box,(bb.x+bb.width/2)*(r.width/W),bb.y*(r.height/H),html);
       } else hideTip();
@@ -1412,7 +1408,21 @@
         $("fab").hidden=true; $("btnSettings").hidden=true; $("btnFlow").hidden=true;
         var blt=$("btnLogTop"); if(blt)blt.hidden=true;
         note.textContent="Mirror view, live from the broker. Logging happens on the Claude dashboard.";
+        /* tick stream when the host offers it (Railway); polling below stays as fallback */
+        var sseAt=0;
+        try{
+          var es=new EventSource("stream");
+          es.onmessage=function(ev){
+            try{
+              var dd=JSON.parse(ev.data);
+              if(dd.open)openPos=dd.open;
+              if(dd.orders)orders=dd.orders;
+              sseAt=Date.now(); renderOpen();
+            }catch(e2){}
+          };
+        }catch(e){}
         setInterval(async function(){
+          if(Date.now()-sseAt<4000)return;
           try{
             var r1=await fetch("open.json",{cache:"no-store"}); if(r1.ok)openPos=(await r1.json())||[];
             var r1b=await fetch("orders.json",{cache:"no-store"}); if(r1b.ok)orders=(await r1b.json())||[];
