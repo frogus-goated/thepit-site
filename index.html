@@ -383,6 +383,9 @@
   #bgCandlesLit{opacity:.45;-webkit-mask-image:radial-gradient(380px at var(--bx,-999px) var(--by,-999px),rgba(0,0,0,.85),transparent 70%);mask-image:radial-gradient(380px at var(--bx,-999px) var(--by,-999px),rgba(0,0,0,.85),transparent 70%)}
   @media (hover:none),(prefers-reduced-motion:reduce){#bgCandlesLit{display:none}}
   #main{grid-template-columns:minmax(0,1fr)}
+  @media (min-width:940px){#main{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  .dir.ord{background:none;border:1px dashed rgba(238,200,98,.45);color:var(--gold)}
+  .odist{font-family:var(--mono);font-variant-numeric:tabular-nums;font-weight:600;font-size:16px;color:var(--gold)}
 </style>
 <div id="bgCandles" aria-hidden="true"></div>
 <div id="bgCandlesLit" aria-hidden="true"></div><div class="bgc cl2"></div><div class="bgc cl3"></div><div class="bgc cl4"></div><div class="bgc cl5"></div><div class="bgc cl6"></div><div class="bgc cl7"></div></div>
@@ -583,7 +586,7 @@
 "use strict";
 (function(){
   var db=null, unsubT=null, unsubS=null, unsubF=null, unsubO=null;
-  var trades=[], flows=[], settings={}, openPos=[];
+  var trades=[], flows=[], settings={}, openPos=[], orders=[];
   var dir="long", flowType="deposit", detailId=null, detailKind="trade", deleteArmed=false;
   var chartMode="bal", dailyRange=15, logLimit=25, countsDone=false, prevNet=null, seenTradeIds=null;
 
@@ -786,10 +789,10 @@
   function hwKey(t){return "pit-hw-"+t}
   function renderOpen(){
     var card=$("openCard"), host=$("olist");
-    if(!openPos.length){card.hidden=true;host.innerHTML="";openDom={};return}
+    if(!openPos.length&&!orders.length){card.hidden=true;host.innerHTML="";openDom={};return}
     card.hidden=false;
     var latest="";
-    var ids=openPos.map(function(p){return String(p.id)}).sort().join(",");
+    var ids=openPos.map(function(p){return String(p.id)}).concat(orders.map(function(o){return String(o.id)})).sort().join(",");
     if(openDom._ids!==ids){ host.innerHTML=""; openDom={_ids:ids}; }
     openPos.slice().sort(function(a,b){return String(a.ts).localeCompare(String(b.ts))}).forEach(function(p){
       if(p.markTs&&String(p.markTs)>latest)latest=String(p.markTs);
@@ -865,6 +868,26 @@
         if(d.elHigh)d.elHigh.style.left="calc("+Math.min(100,hw).toFixed(1)+"% - 1px)";
         if(d.elMid)d.elMid.textContent=prog.toFixed(0)+"% to target"+(hw!=null&&hw>prog+0.5?" \u00B7 high "+hw.toFixed(0)+"%":"")+(rrTxt?" \u00B7 "+rrTxt:"")+(tgt!=null?" \u00B7 "+fmt$(tgt)+" at TP":"");
       }
+    });
+    orders.slice().sort(function(a,b){return String(a.ts).localeCompare(String(b.ts))}).forEach(function(o){
+      if(o.markTs&&String(o.markTs)>latest)latest=String(o.markTs);
+      var dist=(o.mark!=null&&o.price!=null)?Math.abs(o.mark-o.price):null;
+      var pct=(dist!=null&&o.price)?(dist/o.price*100):null;
+      var d2=openDom[o.id];
+      if(!d2){
+        var row=document.createElement("div");
+        row.className="trow"; row.style.cursor="default";
+        row.innerHTML=
+          '<div class="dir ord '+(o.dir==="short"?"short":"long")+'"><svg class="ic" viewBox="0 0 24 24">'+
+          (o.dir==="short"?'<path d="M12 5v14M6 13l6 6 6-6"/>':'<path d="M12 19V5M6 11l6-6 6 6"/>')+'</svg></div>'+
+          '<div><div class="sym">'+esc((o.symbol||"?").toUpperCase())+' <span class="tpsl">'+esc(o.size!=null?(o.size+" lot"+(o.size===1?"":"s")):"?")+' \u00B7 '+esc(o.kind||"ORDER")+' @ '+(o.price!=null?o.price:"?")+'</span></div>'+
+          '<div class="meta num oline"></div></div>'+
+          '<div class="pnl"><div class="odist"></div><div class="r">to trigger</div></div>';
+        host.appendChild(row);
+        d2=openDom[o.id]={elM:row.querySelector(".oline"),elD:row.querySelector(".odist")};
+      }
+      d2.elM.textContent="now "+(o.mark!=null?o.mark:"?")+"  \u00B7  TP "+(o.tp!=null?o.tp:"\u2013")+" \u00B7 SL "+(o.sl!=null?o.sl:"\u2013");
+      d2.elD.textContent=dist!=null?(dist.toFixed(1)+" pts"+(pct!=null?" ("+pct.toFixed(2)+"%)":"")):"\u2013";
     });
     $("openAsOf").textContent=latest?("as of "+latest.slice(5,16).replace("T"," ")):"";
   }
@@ -1405,6 +1428,8 @@
       try{
         var ro=await fetch("open.json",{cache:"no-store"});
         if(ro.ok){ openPos=(await ro.json())||[]; }
+        var rob=await fetch("orders.json",{cache:"no-store"});
+        if(rob.ok){ orders=(await rob.json())||[]; }
       }catch(e){}
       try{
         var rm=await fetch("meta.json",{cache:"no-store"});
@@ -1417,7 +1442,11 @@
         var blt=$("btnLogTop"); if(blt)blt.hidden=true;
         note.textContent="Mirror view, live from the broker. Logging happens on the Claude dashboard.";
         setInterval(async function(){
-          try{var r1=await fetch("open.json",{cache:"no-store"}); if(r1.ok){openPos=(await r1.json())||[]; renderOpen();}}catch(e){}
+          try{
+            var r1=await fetch("open.json",{cache:"no-store"}); if(r1.ok)openPos=(await r1.json())||[];
+            var r1b=await fetch("orders.json",{cache:"no-store"}); if(r1b.ok)orders=(await r1b.json())||[];
+            renderOpen();
+          }catch(e){}
         },2000);
         setInterval(async function(){
           try{
@@ -1442,6 +1471,12 @@
         var b=Object.assign({},d.data()); b.id=d.id; return b;
       });
       render();
+    },function(){});
+    db.collection("orders").onSnapshot(function(snap){
+      orders=snap.docs.filter(function(x){return x.exists}).map(function(x){
+        var b=Object.assign({},x.data()); b.id=x.id; return b;
+      });
+      renderOpen();
     },function(){});
     unsubO=db.collection("open").onSnapshot(function(snap){
       openPos=snap.docs.filter(function(d){return d.exists}).map(function(d){
