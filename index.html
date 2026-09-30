@@ -862,7 +862,7 @@
         if(d.elFill)requestAnimationFrame(function(){d.elFill.style.width=prog.toFixed(1)+"%"});
       }
       d.elF.className="num ofloat "+(f>0?"win":f<0?"loss":"");
-      if(f!=null){ tweenNum(d.elF,d.float,f,f===Math.round(f)?0:2,"",900); d.float=f; }
+      if(f!=null){ tweenNum(d.elF,d.float,f,f===Math.round(f)?0:2,"",600); d.float=f; }
       d.elM.textContent=(p.entry!=null?p.entry:"?")+" \u2192 "+(p.mark!=null?p.mark:"?")+"  \u00B7  TP "+(p.tp!=null?p.tp:"\u2013")+" \u00B7 "+(p.sl!=null?("SL "+p.sl):(liq!=null?("LIQ ~"+liq.toFixed(1)):"SL \u2013"));
       if(prog!=null&&d.elFill){
         d.elFill.style.width=prog.toFixed(1)+"%";
@@ -1418,7 +1418,7 @@
             var r1b=await fetch("orders.json",{cache:"no-store"}); if(r1b.ok)orders=(await r1b.json())||[];
             renderOpen();
           }catch(e){}
-        },2000);
+        },1000);
         setInterval(async function(){
           try{
             var r2=await fetch("trades.json",{cache:"no-store"}); if(r2.ok)trades=(await r2.json())||[];
