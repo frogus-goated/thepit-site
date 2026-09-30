@@ -1,1 +1,1 @@
-[{"id": "p-20260929-0001", "ticket": 176523528, "ts": "2026-09-29T08:49:23Z", "symbol": "XAUUSD", "market": "forex", "dir": "long", "size": 1, "entry": 4135.89, "tp": 4210.54, "sl": null, "mark": 4185.24, "float": 4935, "markTs": "2026-09-30T14:50:34Z"}]
+[{"id":"p-176523528","ticket":176523528,"ts":"2026-09-29T05:49:23Z","symbol":"XAUUSD","market":"forex","dir":"long","size":1,"entry":4135.89,"tp":4210.54,"sl":null,"mark":4189.14,"float":5163.04,"markTs":"2026-09-30T12:03:00Z"}]
