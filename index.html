@@ -200,6 +200,7 @@
   #sumCard{border-color:rgba(212,187,135,.30);box-shadow:inset 0 1px 0 rgba(238,214,150,.07);margin-top:6px}
   #sumBal{font-size:36px;font-weight:600;line-height:1.15}
   #sumBal.loss{color:var(--loss)}
+  #sumBal.win{color:var(--win)}
   #sumSub{font-size:12px;color:var(--ink-3);margin-top:4px}
   #capgrid .cap{border:0;padding:10px 0 0 0}
   .chk2{display:flex;align-items:flex-start;gap:11px;padding:10px 2px;border-bottom:1px solid var(--line-soft)}
@@ -221,12 +222,12 @@
 
   <div class="card" id="sumCard">
     <h2>Account <button id="btnFlow" type="button" style="margin-left:auto;background:none;border:1px solid var(--line);border-radius:8px;color:var(--ink-2);padding:5px 10px;cursor:pointer;font-family:var(--display);font-size:10px;font-weight:600;letter-spacing:.14em">+ MONEY</button></h2>
-    <div class="lbl" style="margin-top:14px">Balance</div>
+    <div class="lbl" style="margin-top:14px">Profit</div>
     <div id="sumBal" class="num">$0</div>
     <div id="sumSub"></div>
     <div id="capgrid">
       <div class="cap"><div class="lbl">Invested</div><div class="cv num" id="cDep">$0</div></div>
-      <div class="cap"><div class="lbl">Profit</div><div class="cv num" id="cProf">$0</div></div>
+      <div class="cap"><div class="lbl">Balance</div><div class="cv num" id="cProf">$0</div></div>
       <div class="cap"><div class="lbl">Withdrawn</div><div class="cv num" id="cWit">$0</div></div>
       <div class="cap"><div class="lbl">Reinvested</div><div class="cv num" id="cRei">$0</div></div>
     </div>
@@ -525,14 +526,14 @@
     var start=(typeof settings.startBalance==="number"?settings.startBalance:0);
     var own=start+s.dep-s.rei;
     $("cDep").textContent=fmtBal(own);
-    var prof=$("cProf");
-    prof.textContent=s.net===0?"$0":fmt$(s.net); prof.className="cv num "+(s.net>0?"win":s.net<0?"loss":"");
+    var balNow0=start+s.dep-s.wit+s.net;
+    var balEl=$("cProf");
+    balEl.textContent=fmtBal(balNow0); balEl.className="cv num "+(balNow0<0?"loss":"");
     $("cWit").textContent=fmtBal(s.wit);
     var re=$("cRei"); re.textContent=fmtBal(s.rei);
     re.className="cv num "+(s.rei>0?"win":"");
-    var balNow=start+s.dep-s.wit+s.net;
-    var sb=$("sumBal"); sb.textContent=fmtBal(balNow);
-    sb.className="num "+(balNow<0?"loss":"");
+    var sb=$("sumBal"); sb.textContent=s.net===0?"$0":fmt$(s.net);
+    sb.className="num "+(s.net>0?"win":s.net<0?"loss":"");
     var bits=[];
     if(s.net>0)bits.push("banked "+Math.round(Math.min(1,s.wit/s.net)*100)+"% of profit");
     if(s.n)bits.push(s.wins+"W / "+s.losses+"L");
