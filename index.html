@@ -265,6 +265,22 @@
   .sheet{background:rgba(16,19,27,.92);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);border-color:rgba(255,255,255,.1)}
   #eqBox svg path[stroke]{filter:drop-shadow(0 0 8px rgba(238,200,98,.35))}
 
+  /* mockup-faithful structure: hero = two sibling cards; stats = floating tiles */
+  #wrap{max-width:1240px}
+  #main{gap:18px}
+  #heroWrap{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:18px;align-items:stretch}
+  #sumCard{display:flex;flex-direction:column;justify-content:center}
+  #heroL{position:relative;z-index:1}
+  #vaultCard2{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;background:linear-gradient(160deg,rgba(238,200,98,.10),rgba(255,255,255,.03) 55%);border-color:rgba(238,200,98,.28);padding:24px 22px}
+  #vaultCard2 .vhead{display:flex;justify-content:center;gap:16px;width:100%}
+  #tiles{background:none;border:0;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none;padding:0;gap:14px}
+  .tile{background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.08)!important;border-radius:16px;padding:15px 17px;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
+  @media (max-width:640px){
+    #heroWrap{grid-template-columns:1fr}
+    #tiles{gap:10px}
+    .tile{padding:11px 12px}
+  }
+
   /* glass composition pass: match the approved mockup's density */
   #top{background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.09);border-radius:18px;padding:11px 16px;margin-top:10px;backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);position:sticky}
   #btnLogTop{background:linear-gradient(180deg,#F7E9BE,var(--gold) 40%,#C99B3C);color:#241A05;border:0;border-radius:999px;padding:8px 16px;font-family:var(--body);font-weight:700;font-size:11px;letter-spacing:.06em;cursor:pointer;box-shadow:0 6px 22px rgba(238,200,98,.35)}
@@ -282,6 +298,40 @@
   .trow .pnl .num{font-size:16px}
   @media (min-width:641px){#fab{display:none}}
   @media (max-width:640px){#btnLogTop{display:none}}
+
+  /* mockup exact values, last word in the cascade */
+  :root{--ink-3:#8A93A6;--ink-2:#A6AEC0}
+  #ambient{background:
+    radial-gradient(760px 640px at -2% -10%,rgba(238,200,98,.17),transparent 70%),
+    radial-gradient(720px 620px at 102% -8%,rgba(124,92,255,.13),transparent 70%),
+    radial-gradient(820px 700px at 55% 46%,rgba(56,224,186,.07),transparent 70%)}
+  .card{border-radius:20px;padding:24px 28px}
+  #sumCard,#vaultCard2{border-radius:24px}
+  #sumCard{padding:30px 32px}
+  .lbl{font-size:11px;letter-spacing:.16em;color:var(--ink-3)}
+  #capgrid .lbl,.tile .lbl{font-size:10px;letter-spacing:.14em}
+  #sumBal{font-size:clamp(40px,7vw,58px);letter-spacing:0;margin-top:8px}
+  #sumSub{font-size:13px;margin-top:10px}
+  #capgrid{margin-top:26px;gap:14px}
+  #capgrid .cap{padding:14px 16px;border-radius:16px}
+  #capgrid .cv{font-size:20px;margin-top:6px}
+  .tile{padding:16px 18px}
+  .tile .v{font-size:20px;margin-top:7px;padding-top:0}
+  .card h2{font-size:11px;letter-spacing:.16em;margin:0 0 16px}
+  .chk2>div{display:flex;gap:14px;align-items:baseline;flex-wrap:wrap}
+  .chk2 .cl{flex:none;width:190px;font-size:13px}
+  .chk2 .ct{margin-top:0;font-size:12px}
+  #top{padding:14px 22px}
+  #heroL{align-self:flex-start;text-align:left;width:100%}
+  .frow2 .ft{background:rgba(238,200,98,.10)}
+  @media (max-width:640px){
+    .card{padding:18px 16px}
+    #sumCard{padding:22px 18px}
+    #sumBal{font-size:42px}
+    .chk2>div{display:block}
+    .chk2 .cl{width:auto}
+    .chk2 .ct{margin-top:2px}
+  }
 </style>
 <div id="bgCandles" aria-hidden="true"></div>
 <div id="ambient" aria-hidden="true"></div>
@@ -299,28 +349,27 @@
   <input id="impFile" type="file" accept="image/*" multiple hidden>
 
   <div id="main">
-    <section class="card" id="sumCard">
-      <svg id="heroSpark" viewBox="0 0 100 32" preserveAspectRatio="none" aria-hidden="true"></svg>
-      <h2>Account</h2>
-      <div id="heroRow">
+    <div id="heroWrap">
+      <section class="card" id="sumCard">
+        <svg id="heroSpark" viewBox="0 0 100 32" preserveAspectRatio="none" aria-hidden="true"></svg>
         <div id="heroL">
           <div class="lbl">Profit, all time</div>
           <div id="sumBal" class="num">$0</div>
           <div id="sumSub"></div>
         </div>
-        <div id="heroV">
-          <div class="vhead"><span class="lbl">BTC vault</span><span class="lbl">Goal 1 BTC</span></div>
-          <div id="vring"><div id="vringIn"><div id="vpct" class="num">&ndash;</div><div class="vsub">of one bitcoin</div></div></div>
-          <div id="vaddr"><code id="vaddrTxt" role="button" tabindex="0" title="Tap to copy">bc1q6947reqr6weujqra7s8ahrq06tz9hph3lgh8l6</code></div>
+        <div id="capgrid">
+          <div class="cap"><div class="lbl">Invested</div><div class="cv num" id="cDep">$0</div></div>
+          <div class="cap"><div class="lbl">Balance</div><div class="cv num" id="cProf">$0</div></div>
+          <div class="cap"><div class="lbl">Withdrawn</div><div class="cv num" id="cWit">$0</div></div>
+          <div class="cap"><div class="lbl">Reinvested</div><div class="cv num" id="cRei">$0</div></div>
         </div>
-      </div>
-      <div id="capgrid">
-        <div class="cap"><div class="lbl">Invested</div><div class="cv num" id="cDep">$0</div></div>
-        <div class="cap"><div class="lbl">Balance</div><div class="cv num" id="cProf">$0</div></div>
-        <div class="cap"><div class="lbl">Withdrawn</div><div class="cv num" id="cWit">$0</div></div>
-        <div class="cap"><div class="lbl">Reinvested</div><div class="cv num" id="cRei">$0</div></div>
-      </div>
-    </section>
+      </section>
+      <section class="card" id="vaultCard2">
+        <div class="vhead"><span class="lbl">BTC vault</span><span class="lbl">Goal 1 BTC</span></div>
+        <div id="vring"><div id="vringIn"><div id="vpct" class="num">&ndash;</div><div class="vsub">of one bitcoin</div></div></div>
+        <div id="vaddr"><code id="vaddrTxt" role="button" tabindex="0" title="Tap to copy">bc1q6947reqr6weujqra7s8ahrq06tz9hph3lgh8l6</code></div>
+      </section>
+    </div>
 
     <section class="card" id="openCard" hidden>
       <h2>Open right now <span class="num" id="openAsOf"></span></h2>
@@ -467,7 +516,7 @@
       if(!m)return;
       var num=parseFloat(m[2].replace(/,/g,"")); if(isNaN(num)||num===0)return;
       var dec=(m[2].split(".")[1]||"").length;
-      var t0=performance.now(), dur=750;
+      var t0=performance.now(), dur=1400;
       function step(now){
         var k=Math.min(1,(now-t0)/dur); k=1-Math.pow(1-k,3);
         var v=num*k;
