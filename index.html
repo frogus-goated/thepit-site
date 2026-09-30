@@ -287,7 +287,7 @@
 
     <section class="card chart-card">
       <h2>Day by day
-        <span class="mini-seg"><button id="d7" type="button" aria-pressed="false">7D</button><button id="d30" type="button" aria-pressed="true">30D</button></span>
+        <span class="mini-seg"><button id="d7" type="button" aria-pressed="false">7D</button><button id="d30" type="button" aria-pressed="true">15D</button></span>
         <span class="num" id="dayRange"></span></h2>
       <div class="chartbox" id="dayBox"></div>
       <div id="dayLegend" hidden><i class="sq sp"></i>profit<i class="sq sl"></i>loss<i class="sq sb"></i>banked<i class="sq sd"></i>re-deposited</div>
@@ -386,10 +386,10 @@
   var db=null, unsubT=null, unsubS=null, unsubF=null, unsubO=null;
   var trades=[], flows=[], settings={}, openPos=[];
   var dir="long", flowType="deposit", detailId=null, detailKind="trade", deleteArmed=false;
-  var chartMode="bal", dailyRange=30, logLimit=25;
+  var chartMode="bal", dailyRange=15, logLimit=25;
   try{ chartMode=localStorage.getItem("pit-chart")||"bal"; }catch(e){}
-  try{ dailyRange=+localStorage.getItem("pit-days")||30; }catch(e){}
-  if(dailyRange!==7&&dailyRange!==30)dailyRange=30;
+  try{ dailyRange=+localStorage.getItem("pit-days")||15; }catch(e){}
+  if(dailyRange!==7&&dailyRange!==15)dailyRange=15;
 
   var $=function(id){return document.getElementById(id)};
   var fmt$=function(v){var s=v<0?"-":"+";var a=Math.abs(v);var t=a>=1000?a.toLocaleString("en-US",{maximumFractionDigits:0}):a.toLocaleString("en-US",{maximumFractionDigits:2});return s+"$"+t};
@@ -740,7 +740,7 @@
 
   function renderDaily(d){
     var box=$("dayBox");
-    $("d30").setAttribute("aria-pressed",dailyRange===30?"true":"false");
+    $("d30").setAttribute("aria-pressed",dailyRange===15?"true":"false");
     $("d7").setAttribute("aria-pressed",dailyRange===7?"true":"false");
     var days=d.days.slice(-dailyRange);
     if(!days.length){box.innerHTML='<div class="empty">Daily bars land here. Green over the line, copper under it, gold when you bank.</div>';$("dayRange").textContent="";$("dayLegend").hidden=true;return}
@@ -828,7 +828,7 @@
   $("mBal").addEventListener("click",function(){setChartMode("bal")});
   $("mPnl").addEventListener("click",function(){setChartMode("pnl")});
   var setDailyRange=function(n){dailyRange=n;try{localStorage.setItem("pit-days",String(n))}catch(e){};render()};
-  $("d30").addEventListener("click",function(){setDailyRange(30)});
+  $("d30").addEventListener("click",function(){setDailyRange(15)});
   $("d7").addEventListener("click",function(){setDailyRange(7)});
 
   $("btnFlow").addEventListener("click",function(){
