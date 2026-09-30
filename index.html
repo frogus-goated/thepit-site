@@ -756,7 +756,28 @@
         if(prog!=null){hw=Math.max(stored,prog);localStorage.setItem(hwKey(p.ticket||p.id),String(hw));}
       }catch(e){}
       var tgt=(f!=null&&p.mark!=null&&p.entry!=null&&p.mark!==p.entry&&p.tp!=null)?f*(p.tp-p.entry)/(p.mark-p.entry):null;
-      var rrT=(p.sl!=null&&p.entry!=null&&p.tp!=null&&p.sl!==p.entry)?Math.abs(p.tp-p.entry)/Math.abs(p.entry-p.sl):null;
+      /* RR: risk = SL distance when set, else liquidation (balance at entry is the risk) */
+      var perPt=(f!=null&&p.mark!=null&&p.entry!=null&&p.mark!==p.entry)?Math.abs(f/(p.mark-p.entry)):null;
+      var rrTarget=null, rrNow=null, liq=null;
+      if(p.sl!=null&&p.entry!=null&&p.sl!==p.entry){
+        var den=Math.abs(p.entry-p.sl);
+        if(p.tp!=null)rrTarget=Math.abs(p.tp-p.entry)/den;
+        if(p.mark!=null)rrNow=((p.dir==="short")?(p.entry-p.mark):(p.mark-p.entry))/den;
+      } else {
+        var startB2=(typeof settings.startBalance==="number"?settings.startBalance:0);
+        var balE=startB2;
+        flows.forEach(function(x){ if(String(x.ts)<String(p.ts)) balE+=(x.type==="withdraw"?-(x.amount||0):(x.amount||0)); });
+        trades.forEach(function(x){ if(String(x.ts)<String(p.ts)) balE+=(x.pnl||0); });
+        if(balE>0){
+          if(f!=null)rrNow=f/balE;
+          if(perPt&&p.tp!=null)rrTarget=perPt*Math.abs(p.tp-p.entry)/balE;
+          if(perPt)liq=(p.dir==="short")?(p.entry+balE/perPt):(p.entry-balE/perPt);
+        }
+      }
+      var rrTxt=null;
+      if(rrNow!=null&&rrTarget!=null)rrTxt="R "+rrNow.toFixed(1)+" / "+rrTarget.toFixed(1);
+      else if(rrTarget!=null)rrTxt="RR 1:"+rrTarget.toFixed(1);
+      else if(rrNow!=null)rrTxt="R "+rrNow.toFixed(1);
       var d=openDom[p.id];
       if(!d){
         var row=document.createElement("div");
@@ -787,11 +808,11 @@
       }
       d.elF.className="num ofloat "+(f>0?"win":f<0?"loss":"");
       if(f!=null){ tweenNum(d.elF,d.float,f,f===Math.round(f)?0:2,"",900); d.float=f; }
-      d.elM.textContent=(p.entry!=null?p.entry:"?")+" \u2192 "+(p.mark!=null?p.mark:"?")+"  \u00B7  TP "+(p.tp!=null?p.tp:"\u2013")+" \u00B7 SL "+(p.sl!=null?p.sl:"\u2013");
+      d.elM.textContent=(p.entry!=null?p.entry:"?")+" \u2192 "+(p.mark!=null?p.mark:"?")+"  \u00B7  TP "+(p.tp!=null?p.tp:"\u2013")+" \u00B7 "+(p.sl!=null?("SL "+p.sl):(liq!=null?("LIQ ~"+liq.toFixed(1)):"SL \u2013"));
       if(prog!=null&&d.elFill){
         d.elFill.style.width=prog.toFixed(1)+"%";
         if(d.elHigh)d.elHigh.style.left="calc("+Math.min(100,hw).toFixed(1)+"% - 1px)";
-        if(d.elMid)d.elMid.textContent=prog.toFixed(0)+"% to target"+(hw!=null&&hw>prog+0.5?" \u00B7 high "+hw.toFixed(0)+"%":"")+(tgt!=null?" \u00B7 "+fmt$(tgt)+" at TP":"")+(rrT!=null?" \u00B7 RR 1:"+rrT.toFixed(1):"");
+        if(d.elMid)d.elMid.textContent=prog.toFixed(0)+"% to target"+(hw!=null&&hw>prog+0.5?" \u00B7 high "+hw.toFixed(0)+"%":"")+(rrTxt?" \u00B7 "+rrTxt:"")+(tgt!=null?" \u00B7 "+fmt$(tgt)+" at TP":"");
       }
     });
     $("openAsOf").textContent=latest?("as of "+latest.slice(5,16).replace("T"," ")):"";
