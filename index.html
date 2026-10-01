@@ -835,18 +835,16 @@
       var tgt=(f!=null&&p.mark!=null&&p.entry!=null&&p.mark!==p.entry&&p.tp!=null)?f*(p.tp-p.entry)/(p.mark-p.entry):null;
       /* RR: risk = SL distance when set, else liquidation (balance at entry is the risk) */
       var perPt=(f!=null&&p.mark!=null&&p.entry!=null&&p.mark!==p.entry)?Math.abs(f/(p.mark-p.entry)):null;
+      /* R is always the account risk unit (riskPerLot x lots), never the current SL
+         distance: moving SL into profit must not inflate R. Owner's rule 2026-10-01. */
       var rrTarget=null, rrNow=null, liq=null;
-      if(p.sl!=null&&p.entry!=null&&p.sl!==p.entry){
-        var den=Math.abs(p.entry-p.sl);
-        if(p.tp!=null)rrTarget=Math.abs(p.tp-p.entry)/den;
-        if(p.mark!=null)rrNow=((p.dir==="short")?(p.entry-p.mark):(p.mark-p.entry))/den;
-      } else {
-        var rl2=(typeof settings.riskPerLot==="number"&&settings.riskPerLot>0)?settings.riskPerLot:1000;
-        var riskO=(p.size>0)?rl2*p.size:null;
-        if(riskO){
-          if(f!=null)rrNow=f/riskO;
-          if(perPt&&p.tp!=null&&p.entry!=null)rrTarget=perPt*Math.abs(p.tp-p.entry)/riskO;
-        }
+      var rl2=(typeof settings.riskPerLot==="number"&&settings.riskPerLot>0)?settings.riskPerLot:1000;
+      var riskO=(p.size>0)?rl2*p.size:null;
+      if(riskO){
+        if(f!=null)rrNow=f/riskO;
+        if(perPt&&p.tp!=null&&p.entry!=null)rrTarget=perPt*Math.abs(p.tp-p.entry)/riskO;
+      }
+      if(p.sl==null){
         var startB2=(typeof settings.startBalance==="number"?settings.startBalance:0);
         var balE=startB2;
         flows.forEach(function(x){ if(String(x.ts)<String(p.ts)) balE+=(x.type==="withdraw"?-(x.amount||0):(x.amount||0)); });
