@@ -888,7 +888,11 @@
       }
       d.elF.className="num ofloat "+(f>0?"win":f<0?"loss":"");
       if(f!=null){ tweenNum(d.elF,d.float,f,f===Math.round(f)?0:2,"",380); d.float=f; }
-      d.elM.textContent=(p.entry!=null?p.entry:"?")+" \u2192 "+(p.mark!=null?p.mark:"?")+"  \u00B7  TP "+(p.tp!=null?p.tp:"\u2013")+" \u00B7 "+(p.sl!=null?("SL "+p.sl):(liq!=null?("LIQ ~"+liq.toFixed(1)):"SL \u2013"));
+      var segs=[(p.entry!=null?p.entry:"?")+" \u2192 "+(p.mark!=null?p.mark:"?")];
+      if(p.tp!=null)segs.push("TP "+p.tp);
+      if(p.sl!=null)segs.push("SL "+p.sl);
+      else if(liq!=null)segs.push("LIQ ~"+Math.round(liq).toLocaleString("en-US"));
+      d.elM.textContent=segs.join("  \u00B7  ");
       if(prog!=null&&d.elFill){
         d.elFill.style.width=prog.toFixed(1)+"%";
         if(d.elHigh)d.elHigh.style.left="calc("+Math.min(100,hw).toFixed(1)+"% - 1px)";
