@@ -1494,11 +1494,16 @@
           note.textContent="Mirror view, live from the broker."+extra;
         };
         noteLive();
-        /* tick stream only where the host offers it (Railway); polling stays as fallback */
-        var sseAt=0;
-        if((typeof mm!=="undefined"&&mm&&mm.stream)||/railway\.app$/i.test(location.hostname)){
+        /* tick stream only where the host offers it (Railway); polling stays as fallback.
+           Browsers freeze timers and kill streams in background tabs, so on wake we
+           refetch immediately and reconnect the stream if it died. */
+        var sseAt=0, es=null;
+        var hostHasSSE=(typeof mm!=="undefined"&&mm&&mm.stream)||/railway\.app$/i.test(location.hostname);
+        var connectSSE=function(){
+          if(!hostHasSSE)return;
           try{
-            var es=new EventSource("stream");
+            if(es&&es.readyState!==2)return;
+            es=new EventSource("stream");
             es.onmessage=function(ev){
               try{
                 var dd=JSON.parse(ev.data);
@@ -1508,8 +1513,24 @@
               }catch(e2){}
             };
           }catch(e){}
-        }
+        };
+        connectSSE();
+        var refreshNow=async function(){
+          connectSSE();
+          try{
+            var r1=await fetch("open.json",{cache:"no-store"}); if(r1.ok)openPos=(await r1.json())||[];
+            var r1b=await fetch("orders.json",{cache:"no-store"}); if(r1b.ok)orders=(await r1b.json())||[];
+            var r2=await fetch("trades.json",{cache:"no-store"}); if(r2.ok)trades=(await r2.json())||[];
+            var r3=await fetch("flows.json",{cache:"no-store"}); if(r3.ok)flows=(await r3.json())||[];
+            render();
+          }catch(e){}
+        };
+        document.addEventListener("visibilitychange",function(){if(!document.hidden)refreshNow()});
+        window.addEventListener("focus",function(){refreshNow()});
+        window.addEventListener("pageshow",function(ev){if(ev.persisted)refreshNow()});
+        window.addEventListener("online",function(){refreshNow()});
         setInterval(async function(){
+          if(document.hidden)return;
           if(Date.now()-sseAt<4000)return;
           try{
             var r1=await fetch("open.json",{cache:"no-store"}); if(r1.ok)openPos=(await r1.json())||[];
