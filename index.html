@@ -719,7 +719,7 @@
       best.textContent=wgap<=0?"today":wgap+"d ago";
       best.className="v num "+(wgap<=7?"win":"loss");
     } else { best.textContent="–"; best.className="v num"; }
-    $("tGreen").textContent=d.tradeDays.length?(s.greenDays+" / "+d.tradeDays.length):"–";
+    $("tGreen").textContent=d.tradeDays.length?(Math.round(s.greenDays/d.tradeDays.length*100)+"%"):"–";
 
     if(seenTradeIds&&Object.keys(seenTradeIds).length){
       var addedT=trades.filter(function(t){return !seenTradeIds[t.id]});
