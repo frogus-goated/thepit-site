@@ -672,7 +672,7 @@
       var p=t.pnl||0; s.net+=p;
       if(p>0){s.wins++;s.gw+=p;run++;if(run>s.maxWinStreak)s.maxWinStreak=run}
       else if(p<0){s.losses++;s.gl+=-p;run=0}
-      if(t.size>0){ s.apl+=p/t.size; s.aplN++; if(p>0){s.wpl+=p/t.size;s.wplN++} else if(p<0){s.lpl+=p/t.size;s.lplN++} }
+      if(t.size>0){ s.apl+=p; s.aplN+=t.size; if(p>0){s.wpl+=p/t.size;s.wplN++} else if(p<0){s.lpl+=p/t.size;s.lplN++} } /* apl: pnl summed over lots, tile shows net/lots */
       var rl0=(typeof settings.riskPerLot==="number"&&settings.riskPerLot>0)?settings.riskPerLot:1000;
       var rEff=(typeof t.r==="number")?t.r:((t.size>0)?p/(rl0*t.size):(((preBal[t.id]||0)>0)?p/preBal[t.id]:null));
       if(rEff!=null){s.rSum+=rEff;s.rN++;if(rEff>s.maxR)s.maxR=rEff}
