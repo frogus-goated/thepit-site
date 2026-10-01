@@ -362,14 +362,16 @@
   .obox{border:1px solid rgba(61,224,168,.26);background:rgba(61,224,168,.05);border-radius:14px;padding:13px 16px}
   .orow1{display:flex;align-items:center;gap:14px}
   .orow1 .omain{min-width:0;flex:1}
+  .orow1 .pnl{margin-left:auto;text-align:right;flex:none}
+  .orow1 .ofloat{font-size:22px;font-weight:600;letter-spacing:-.01em}
   .ofloor{font-family:var(--mono);font-size:10px;margin-top:3px;color:var(--ink-3);letter-spacing:.02em}
   .ofloor.win{color:var(--win)} .ofloor.loss{color:var(--loss)}
   .osub{font-family:var(--mono);font-size:10px;color:var(--ink-3);margin-top:3px;text-align:right}
   .orail{position:relative;height:40px;margin:12px 2px 0}
-  .rbase,.rfill{position:absolute;top:10px;height:6px;border-radius:99px}
-  .rbase{left:0;right:0;background:rgba(255,255,255,.08)}
-  .rfill{left:0;width:0;background:linear-gradient(90deg,#0F3D2C,#2BBF8A)}
-  .rsl{position:absolute;top:6px;width:2px;height:14px;background:var(--loss);border-radius:1px;margin-left:-1px}
+  .rbase,.rfill{position:absolute;top:9px;height:8px;border-radius:99px}
+  .rbase{left:0;right:0;background:rgba(255,255,255,.06);box-shadow:inset 0 1px 2px rgba(0,0,0,.5)}
+  .rfill{left:0;width:0;background:linear-gradient(90deg,#0F3D2C,#1F8A63 60%,#36D39A);box-shadow:0 0 10px rgba(61,224,168,.25)}
+  .rsl{position:absolute;top:5px;width:2.5px;height:16px;background:var(--loss);border-radius:2px;margin-left:-1px;box-shadow:0 0 6px rgba(255,122,92,.5)}
   .rhigh{position:absolute;top:7px;width:2px;height:12px;background:rgba(255,255,255,.35);border-radius:1px;margin-left:-1px}
   .rlab{position:absolute;top:28px;font-size:9px;color:var(--ink-4);white-space:nowrap}
   .rlentry{left:0}
@@ -987,7 +989,9 @@
         d.elSl.style.left=slPct.toFixed(1)+"%"; d.elSl.hidden=false;
         d.elLS.textContent=fmt$(Math.round(floorAmt));
         d.elLS.className="rlab rlsl num "+(floorAmt>=0?"win":"loss");
-        d.elLS.style.left=Math.max(6,Math.min(94,slPct)).toFixed(1)+"%"; d.elLS.hidden=false;
+        d.elLS.style.left=Math.max(4,Math.min(94,slPct)).toFixed(1)+"%";
+        d.elLS.style.top=(slPct<12)?"-3px":""; /* near the left edge: label above, clear of the entry text */
+        d.elLS.hidden=false;
       } else { d.elSl.hidden=true; d.elLS.hidden=true; }
       if(hw!=null&&prog!=null&&hw>prog+1){
         d.elHigh.style.left=Math.min(100,hw).toFixed(1)+"%"; d.elHigh.hidden=false;
