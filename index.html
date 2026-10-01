@@ -480,7 +480,7 @@
       <div class="tile"><div class="lbl">Avg per lot</div><div class="v num" id="tR">&ndash;</div></div>
       <div class="tile"><div class="lbl">Last withdrawn</div><div class="v num" id="tBest">&ndash;</div></div>
       <div class="tile"><div class="lbl">Green days</div><div class="v num" id="tGreen">&ndash;</div></div>
-      <div class="tile"><div class="lbl">Trades</div><div class="v num" id="tTrades">0</div></div>
+      <div class="tile"><div class="lbl">Per trade</div><div class="v num" id="tTrades">0</div><div class="sub num" id="tTradesSub"></div></div>
     </div>
 
     <section class="card" id="ruleCard">
@@ -708,7 +708,9 @@
   /* ---------- render ---------- */
   function render(){
     var d=derive(), s=d.s;
-    $("tTrades").textContent=s.n;
+    /* expectancy: win rate and win size folded into one number */
+    $("tTrades").textContent=s.n?fmt$(Math.round(s.net/s.n)):"-";
+    var tsb=$("tTradesSub"); if(tsb)tsb.textContent=s.n?(s.n+" trades"):"";
     $("tWr").textContent=s.n?Math.round(s.wins/s.n*100)+"%":"–";
     $("tPf").textContent=s.gl>0?(s.gw/s.gl).toFixed(2):(s.gw>0?"∞":"–");
     $("tR").textContent=s.aplN?fmt$(s.apl/s.aplN):"–";
