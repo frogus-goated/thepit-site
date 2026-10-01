@@ -360,7 +360,10 @@
   #ambient{display:none}
   .tprog{margin-top:14px}
   .obox{border:1px solid rgba(61,224,168,.26);background:rgba(61,224,168,.05);border-radius:14px;padding:13px 16px}
-  .orow1{display:flex;align-items:center;gap:14px}
+  .orow1{display:flex;align-items:flex-start;gap:12px}
+  .orow1 .dir{width:auto;height:auto;background:none;border-radius:0;margin-top:2px;flex:none}
+  .orow1 .dir .ic{width:15px;height:15px}
+  .orow1 .dir.long{color:var(--win)} .orow1 .dir.short{color:var(--loss)}
   .orow1 .omain{min-width:0;flex:1}
   .orow1 .pnl{margin-left:auto;text-align:right;flex:none}
   .orow1 .ofloat{font-size:22px;font-weight:600;letter-spacing:-.01em}
