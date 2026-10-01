@@ -947,13 +947,22 @@
           (o.dir==="short"?'<path d="M12 5v14M6 13l6 6 6-6"/>':'<path d="M12 19V5M6 11l6-6 6 6"/>')+'</svg></div>'+
           '<div><div class="sym">'+esc((o.symbol||"?").toUpperCase())+' <span class="tpsl">'+esc(o.size!=null?(o.size+" lot"+(o.size===1?"":"s")):"?")+' \u00B7 '+esc(o.kind||"ORDER")+' @ '+(o.price!=null?o.price:"?")+'</span></div>'+
           '<div class="meta num oline"></div></div>'+
-          '<div class="pnl"><div class="odist"></div><div class="r">to trigger</div></div>';
+          '<div class="pnl"><div class="odist"></div><div class="r">to fill</div></div>';
         obx.appendChild(row);
         host.appendChild(obx);
         d2=openDom[o.id]={elM:row.querySelector(".oline"),elD:row.querySelector(".odist")};
       }
-      d2.elM.textContent="now "+(o.mark!=null?o.mark:"?")+"  \u00B7  TP "+(o.tp!=null?o.tp:"\u2013")+" \u00B7 SL "+(o.sl!=null?o.sl:"\u2013");
-      d2.elD.textContent=dist!=null?(dist.toFixed(1)+" pts"+(pct!=null?" ("+pct.toFixed(2)+"%)":"")):"\u2013";
+      var osegs=["now "+(o.mark!=null?o.mark:"?")];
+      if(o.tp!=null)osegs.push("TP "+o.tp);
+      if(o.sl!=null)osegs.push("SL "+o.sl);
+      d2.elM.textContent=osegs.join("  \u00B7  ");
+      if(dist!=null&&o.mark!=null&&o.price!=null){
+        var verb=(o.mark>o.price)?"drop":"climb";
+        /* move translated to his risk unit: $ per price-dollar per lot (gold 100, btc 1) */
+        var mult=/^XAU/.test(o.symbol||"")?100:(/^(BTC|ETH)/.test(o.symbol||"")?1:null);
+        var rEq=mult?(dist*mult/1000):null;
+        d2.elD.textContent="$"+dist.toFixed(1)+" "+verb+(rEq!=null?" \u00B7 "+rEq.toFixed(1)+"R move":"");
+      } else d2.elD.textContent="-";
     });
     $("openAsOf").textContent=latest?("as of "+dayLabel(dayOf(latest))+", "+timeOf(latest)):"";
     startOpenAnim();
