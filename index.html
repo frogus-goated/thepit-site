@@ -131,6 +131,7 @@
   .tpnl.fwit{color:var(--blu)} .tpnl.frei{color:#F59E4B}
   #cWit{color:var(--blu)}
   #cRei.rei{color:#F59E4B}
+  #sumReal{font-family:var(--mono);font-size:11.5px;letter-spacing:.03em;color:var(--ink-3);margin-top:7px}
   .trow2 .tmain{min-width:0}
   .trow2 .tl1{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline}
   .trow2 .tsym{font-family:var(--mono);font-weight:600;font-size:12.5px;min-width:86px}
@@ -432,6 +433,7 @@
         <div id="heroL">
           <div class="lbl">Profit, all time</div>
           <div id="sumBal" class="num">$0</div>
+          <div id="sumReal" class="num"></div>
         </div>
         <div id="capgrid">
           <div class="cap"><div class="lbl">Invested</div><div class="cv num" id="cDep">$0</div></div>
@@ -950,6 +952,17 @@
     } else sb.textContent=newTxt;
     prevNet=s.net;
     sb.className="num "+(s.net>0?"win":s.net<0?"loss":"");
+    /* make the money concrete: baht + his own anchors (3k = business flight Tokyo/Paris, 7k = Japan week w/ business flights) */
+    var sr=$("sumReal");
+    if(sr){
+      if(s.net>=3000){
+        var thb=Math.round(s.net*36/1000)*1000;
+        var line="\u2248 \u0E3F"+thb.toLocaleString("en-US");
+        if(s.net>=7000)line+=" \u00B7 "+(s.net/7000).toFixed(1)+" weeks in Japan, business flights included";
+        else line+=" \u00B7 "+Math.floor(s.net/3000)+" business class flight"+(Math.floor(s.net/3000)>1?"s":"")+" to Tokyo";
+        sr.textContent=line;
+      } else sr.textContent="";
+    }
     var sp=$("heroSpark");
     if(sp){
       if(d.days.length>1){
