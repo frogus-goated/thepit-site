@@ -453,7 +453,7 @@
             <text x="105" y="30" fill="#EEC862">0</text><text x="184" y="108">25</text><text x="105" y="188">50</text><text x="26" y="108">75</text>
           </g>
           <circle cx="105" cy="105" r="72" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="7"/>
-          <circle id="vringArc" cx="105" cy="105" r="72" fill="none" stroke="url(#coinG)" stroke-width="7" stroke-linecap="butt" stroke-dasharray="0 453" transform="rotate(-90 105 105)"/>
+          <circle id="vringArc" cx="105" cy="105" r="72" fill="none" stroke="url(#coinG)" stroke-width="7" stroke-linecap="round" stroke-dasharray="0 453" opacity="0" transform="rotate(-87.21 105 105)"/>
           <polygon id="vneedle" points="105,38 100,50 110,50" fill="#EEC862"/>
           <circle cx="105" cy="105" r="56" fill="#11141b" stroke="rgba(238,200,98,0.3)" stroke-width="1.5"/>
           <circle cx="105" cy="105" r="49" fill="none" stroke="rgba(238,200,98,0.15)" stroke-width="1" stroke-dasharray="2 4"/>
@@ -1396,7 +1396,13 @@
     if(typeof v!=="number")return;
     var pct=v/1e8*100, c=Math.min(100,pct);
     $("vpct").textContent=pct.toFixed(2)+"%";
-    var arc=$("vringArc"); if(arc)arc.setAttribute("stroke-dasharray",(c/100*452.4).toFixed(1)+" 453");
+    var arc=$("vringArc");
+    if(arc){
+      var len=c/100*452.4;
+      /* round caps add 3.5px each side; subtract them and start-shift so the pill sits exactly at 12 o'clock */
+      arc.setAttribute("opacity",len>0.5?"1":"0");
+      arc.setAttribute("stroke-dasharray",Math.max(0.01,len-7).toFixed(1)+" 453");
+    }
     var nd=$("vneedle"); if(nd)nd.setAttribute("transform","rotate("+(c*3.6).toFixed(1)+" 105 105)");
     var f=$("vfill"); if(f)f.style.width=c+"%";
   }
