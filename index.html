@@ -1597,6 +1597,19 @@
           if(mm&&typeof mm.brokerOffsetMs==="number")BROKER_OFF=mm.brokerOffsetMs;
           if(!savingsLive&&mm&&mm.savings&&typeof mm.savings.sats==="number")setSats(mm.savings.sats); }
       }catch(e){}
+      /* #demo in the url shows sample positions for design review; live data untouched */
+      var DEMO=location.hash==="#demo";
+      if(DEMO){
+        openPos=[
+          {id:"demo1",ticket:901,ts:"2026-10-01T20:00:00Z",symbol:"XAUUSD",market:"forex",dir:"long",size:0.5,entry:4167.78,tp:4197.8,sl:4173.85,mark:4176.2,float:420,markTs:"2026-10-01T21:00:00Z"},
+          {id:"demo2",ticket:902,ts:"2026-10-01T20:10:00Z",symbol:"XAUUSD",market:"forex",dir:"short",size:1,entry:4182.4,tp:4152.4,sl:4188.4,mark:4176.2,float:620,markTs:"2026-10-01T21:00:00Z"},
+          {id:"demo3",ticket:903,ts:"2026-10-01T20:20:00Z",symbol:"XAUUSD",market:"forex",dir:"long",size:0.18,entry:4172.1,tp:null,sl:null,mark:4176.2,float:74,markTs:"2026-10-01T21:00:00Z"}
+        ];
+        orders=[
+          {id:"demoO1",ticket:904,ts:"2026-10-01T20:30:00Z",symbol:"XAUUSD",market:"forex",kind:"BUY LIMIT",dir:"long",size:1,price:4151.57,tp:4181.6,sl:4145,mark:4176.2,markTs:"2026-10-01T21:00:00Z"},
+          {id:"demoO2",ticket:905,ts:"2026-10-01T20:40:00Z",symbol:"XAUUSD",market:"forex",kind:"SELL LIMIT",dir:"short",size:0.5,price:4198.2,tp:4168.2,sl:4204,mark:4176.2,markTs:"2026-10-01T21:00:00Z"}
+        ];
+      }
       var note=$("offnote"); note.style.display="block";
       if(mirror){
         $("fab").hidden=true; $("btnSettings").hidden=true; $("btnFlow").hidden=true;
@@ -1625,6 +1638,7 @@
             es=new EventSource("stream");
             es.onmessage=function(ev){
               try{
+                if(DEMO)return;
                 var dd=JSON.parse(ev.data);
                 if(dd.open)openPos=dd.open;
                 if(dd.orders)orders=dd.orders;
@@ -1637,8 +1651,10 @@
         var refreshNow=async function(){
           connectSSE();
           try{
-            var r1=await fetch("open.json",{cache:"no-store"}); if(r1.ok)openPos=(await r1.json())||[];
-            var r1b=await fetch("orders.json",{cache:"no-store"}); if(r1b.ok)orders=(await r1b.json())||[];
+            if(!DEMO){
+              var r1=await fetch("open.json",{cache:"no-store"}); if(r1.ok)openPos=(await r1.json())||[];
+              var r1b=await fetch("orders.json",{cache:"no-store"}); if(r1b.ok)orders=(await r1b.json())||[];
+            }
             var r2=await fetch("trades.json",{cache:"no-store"}); if(r2.ok)trades=(await r2.json())||[];
             var r3=await fetch("flows.json",{cache:"no-store"}); if(r3.ok)flows=(await r3.json())||[];
             render();
@@ -1656,8 +1672,10 @@
           if(Date.now()-sseAt<4000&&Date.now()-lastPoll<10000)return;
           lastPoll=Date.now();
           try{
-            var r1=await fetch("open.json",{cache:"no-store"}); if(r1.ok)openPos=(await r1.json())||[];
-            var r1b=await fetch("orders.json",{cache:"no-store"}); if(r1b.ok)orders=(await r1b.json())||[];
+            if(!DEMO){
+              var r1=await fetch("open.json",{cache:"no-store"}); if(r1.ok)openPos=(await r1.json())||[];
+              var r1b=await fetch("orders.json",{cache:"no-store"}); if(r1b.ok)orders=(await r1b.json())||[];
+            }
             renderOpen();
           }catch(e){}
         },1000);
