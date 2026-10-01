@@ -817,7 +817,7 @@
     if(!openPos.length&&!orders.length){card.hidden=true;host.innerHTML="";openDom={};return}
     card.hidden=false;
     var latest="";
-    var ids=openPos.map(function(p){return String(p.id)}).concat(orders.map(function(o){return String(o.id)})).sort().join(",");
+    var ids=openPos.map(function(p){return String(p.id)+(p.tp!=null?"t":"")}).concat(orders.map(function(o){return String(o.id)})).sort().join(",");
     if(openDom._ids!==ids){ host.innerHTML=""; openDom={_ids:ids}; }
     openPos.slice().sort(function(a,b){return String(a.ts).localeCompare(String(b.ts))}).forEach(function(p){
       if(p.markTs&&String(p.markTs)>latest)latest=String(p.markTs);
@@ -827,11 +827,6 @@
         prog=(p.dir==="short")?((p.entry-p.mark)/(p.entry-p.tp)*100):((p.mark-p.entry)/(p.tp-p.entry)*100);
         prog=Math.max(0,Math.min(100,prog));
       }
-      var hw=prog;
-      try{
-        var stored=+localStorage.getItem(hwKey(p.ticket||p.id))||0;
-        if(prog!=null){hw=Math.max(stored,prog);localStorage.setItem(hwKey(p.ticket||p.id),String(hw));}
-      }catch(e){}
       var tgt=(f!=null&&p.mark!=null&&p.entry!=null&&p.mark!==p.entry&&p.tp!=null)?f*(p.tp-p.entry)/(p.mark-p.entry):null;
       /* RR: risk = SL distance when set, else liquidation (balance at entry is the risk) */
       var perPt=(f!=null&&p.mark!=null&&p.entry!=null&&p.mark!==p.entry)?Math.abs(f/(p.mark-p.entry)):null;
@@ -851,6 +846,17 @@
         trades.forEach(function(x){ if(String(x.ts)<String(p.ts)) balE+=(x.pnl||0); });
         if(balE>0&&perPt)liq=(p.dir==="short")?(p.entry+balE/perPt):(p.entry-balE/perPt);
       }
+      /* no TP set: the bar tracks progress to the default 3R target instead of hiding */
+      var noTp=(p.tp==null);
+      if(noTp&&rrNow!=null){
+        prog=Math.max(0,Math.min(100,rrNow/3*100));
+        if(riskO)tgt=3*riskO;
+      }
+      var hw=prog;
+      try{
+        var stored=+localStorage.getItem(hwKey(p.ticket||p.id))||0;
+        if(prog!=null){hw=Math.max(stored,prog);localStorage.setItem(hwKey(p.ticket||p.id),String(hw));}
+      }catch(e){}
       var rrTxt=null;
       if(rrNow!=null&&rrTarget!=null)rrTxt="R "+rrNow.toFixed(1)+" / "+rrTarget.toFixed(1);
       else if(rrTarget!=null)rrTxt="RR 1:"+rrTarget.toFixed(1);
@@ -873,7 +879,7 @@
           wrap=document.createElement("div");
           wrap.className="tprog";
           wrap.innerHTML='<div class="pbar"><div class="pfill"></div><div class="phigh"></div></div>'+
-            '<div class="pmeta num"><span>entry '+p.entry+'</span><span class="omid"></span><span>TP '+p.tp+'</span></div>';
+            '<div class="pmeta num"><span>entry '+p.entry+'</span><span class="omid"></span><span>'+(p.tp!=null?("TP "+p.tp):"3R")+'</span></div>';
           box.appendChild(wrap);
         }
         host.appendChild(box);
@@ -896,7 +902,7 @@
       if(prog!=null&&d.elFill){
         d.elFill.style.width=prog.toFixed(1)+"%";
         if(d.elHigh)d.elHigh.style.left="calc("+Math.min(100,hw).toFixed(1)+"% - 1px)";
-        if(d.elMid)d.elMid.textContent=prog.toFixed(0)+"% to target"+(hw!=null&&hw>prog+0.5?" \u00B7 high "+hw.toFixed(0)+"%":"")+(rrTxt?" \u00B7 "+rrTxt:"")+(tgt!=null?" \u00B7 "+fmt$(tgt)+" at TP":"");
+        if(d.elMid)d.elMid.textContent=prog.toFixed(0)+"% to target"+(hw!=null&&hw>prog+0.5?" \u00B7 high "+hw.toFixed(0)+"%":"")+(rrTxt?" \u00B7 "+rrTxt:"")+(tgt!=null?" \u00B7 "+fmt$(tgt)+(noTp?" at 3R":" at TP"):"");
       }
     });
     orders.slice().sort(function(a,b){return String(a.ts).localeCompare(String(b.ts))}).forEach(function(o){
