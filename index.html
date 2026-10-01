@@ -828,8 +828,8 @@
           if(typeof d.dispF!=="number")d.dispF=d.targF;
           d.dispF+=(d.targF-d.dispF)*0.14;
           if(Math.abs(d.targF-d.dispF)<0.006)d.dispF=d.targF;
-          var v=d.dispF, dec=d.decF||0;
-          d.elF.textContent=(v<0?"-":"+")+"$"+Math.abs(v).toLocaleString("en-US",{minimumFractionDigits:dec,maximumFractionDigits:dec});
+          var v=Math.round(d.dispF);
+          d.elF.textContent=(v<0?"-":"+")+"$"+Math.abs(v).toLocaleString("en-US");
         }
         if(d.elFill&&typeof d.targP==="number"){
           if(typeof d.dispP!=="number")d.dispP=d.targP;
@@ -923,7 +923,7 @@
         d.dispF=f||0; d.dispP=prog!=null?prog:0;
       }
       d.elF.className="num ofloat "+(f>0?"win":f<0?"loss":"");
-      if(f!=null){ d.targF=f; d.decF=(f===Math.round(f)?0:2); }
+      if(f!=null){ d.targF=f; d.decF=0; }
       var segs=[(p.entry!=null?p.entry:"?")+" \u2192 "+(p.mark!=null?p.mark:"?")];
       if(p.tp!=null)segs.push("TP "+p.tp);
       if(p.sl!=null)segs.push("SL "+p.sl);
