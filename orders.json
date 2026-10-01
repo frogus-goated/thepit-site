@@ -1,1 +1,1 @@
-[]
+[{"id":"o-178528023","ticket":178528023,"ts":"2026-10-01T15:31:13Z","symbol":"XAUUSD","market":"forex","kind":"BUY LIMIT","dir":"long","size":1,"price":4175,"tp":null,"sl":null,"mark":4185.83,"markTs":"2026-10-01T15:40:55Z"},{"id":"o-178538063","ticket":178538063,"ts":"2026-10-01T15:40:28Z","symbol":"XAUUSD","market":"forex","kind":"SELL LIMIT","dir":"short","size":1,"price":4192.59,"tp":null,"sl":null,"mark":4185.73,"markTs":"2026-10-01T15:40:55Z"}]
