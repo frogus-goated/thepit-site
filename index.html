@@ -622,7 +622,12 @@
   var $=function(id){return document.getElementById(id)};
   var fmt$=function(v){var s=v<0?"-":"+";var a=Math.abs(v);var t=a>=1000?a.toLocaleString("en-US",{maximumFractionDigits:0}):a.toLocaleString("en-US",{maximumFractionDigits:2});return s+"$"+t};
   var esc=function(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})};
-  var dayOf=function(ts){return String(ts||"").slice(0,10)};
+  /* stored ts = broker time (+BROKER_OFF). Display converts to the device's timezone. */
+  var BROKER_OFF=3*3600e3;
+  var pad2=function(n){return (n<10?"0":"")+n};
+  var locDate=function(ts){return new Date(Date.parse(ts)-BROKER_OFF)};
+  var dayOf=function(ts){if(!ts)return "";var d=locDate(ts);return d.getFullYear()+"-"+pad2(d.getMonth()+1)+"-"+pad2(d.getDate())};
+  var timeOf=function(ts){if(!ts)return "";var d=locDate(ts);return pad2(d.getHours())+":"+pad2(d.getMinutes())};
 
   /* The game = discipline, not volume. Nothing on this page rewards
      more trades, bigger trades, or win streaks (owner's rule, 2026-09-30). */
@@ -913,7 +918,7 @@
       d2.elM.textContent="now "+(o.mark!=null?o.mark:"?")+"  \u00B7  TP "+(o.tp!=null?o.tp:"\u2013")+" \u00B7 SL "+(o.sl!=null?o.sl:"\u2013");
       d2.elD.textContent=dist!=null?(dist.toFixed(1)+" pts"+(pct!=null?" ("+pct.toFixed(2)+"%)":"")):"\u2013";
     });
-    $("openAsOf").textContent=latest?("as of "+dayLabel(latest.slice(0,10))+", "+latest.slice(11,16)):"";
+    $("openAsOf").textContent=latest?("as of "+dayLabel(dayOf(latest))+", "+timeOf(latest)):"";
   }
 
   function fmtBal(v){return (v<0?"-$":"$")+Math.abs(v).toLocaleString("en-US",{maximumFractionDigits:0})}
@@ -971,7 +976,7 @@
     var w=f.type==="withdraw", rei=(!w&&f.source==="profit");
     row.innerHTML='<span class="tdir '+(w?"fwit":(rei?"frei":"fown"))+'">'+(w?"←":"→")+'</span>'+
       '<div class="tmain"><div class="tl1"><span class="tsym '+(w?"wit":(rei?"rei":"own"))+'">'+(w?"WITHDRAWN":(rei?"REINVESTED":"DEPOSIT"))+'</span>'+
-      '<span class="ttime">'+esc(String(f.ts||"").slice(11,16))+'</span>'+
+      '<span class="ttime">'+esc(timeOf(f.ts))+'</span>'+
       (f.notes?'<span class="tinfo">'+esc(f.notes)+'</span>':"")+'</div></div>'+
       '<span class="tpnl '+(w?"fwit":(rei?"frei":""))+'">'+(w?"-":"+")+"$"+(f.amount||0).toLocaleString("en-US")+'</span>';
     var open=function(){showFlowDetail(f)};
@@ -1036,7 +1041,7 @@
         row.innerHTML=
           '<span class="tdir '+(p>=0?"long":"short")+'">'+(p>=0?"▲":"▼")+'</span>'+
           '<div class="tmain"><div class="tl1"><span class="tsym">'+esc((t.symbol||"?").toUpperCase())+'</span>'+
-          '<span class="ttime">'+esc(String(t.ts||"").slice(11,16))+'</span>'+
+          '<span class="ttime">'+esc(timeOf(t.ts))+'</span>'+
           '<span class="tinfo">'+esc(bits.join(" · "))+'</span></div>'+
           (l2.length?('<div class="tl2">'+esc(l2.join(" · "))+'</div>'):"")+'</div>'+
           '<span class="tpnl '+(p>0?"win":p<0?"loss":"")+'">'+fmt$(p)+'</span>';
@@ -1294,7 +1299,7 @@
     var amt=num("wAmt");
     if(amt===undefined||isNaN(amt)||amt<=0){toast("Enter an amount.");return}
     var when=$("wWhen").value?new Date($("wWhen").value):new Date();
-    var ts=new Date(when.getTime()+3*3600e3).toISOString().slice(0,19)+"Z"; /* broker time, UTC+3 */
+    var ts=new Date(when.getTime()+BROKER_OFF).toISOString().slice(0,19)+"Z"; /* broker time */
     var id="f-"+ts.slice(0,10).replace(/-/g,"")+"-"+Math.random().toString(36).slice(2,6);
     var f={id:id,ts:ts,type:flowType,amount:amt};
     if(flowType==="deposit"&&$("wSrc").checked)f.source="profit";
@@ -1322,7 +1327,7 @@
     var pnl=num("fPnl");
     if(!sym||pnl===undefined||isNaN(pnl))return;
     var when=$("fWhen").value?new Date($("fWhen").value):new Date();
-    var ts=new Date(when.getTime()+3*3600e3).toISOString().slice(0,19)+"Z"; /* broker time, UTC+3 */
+    var ts=new Date(when.getTime()+BROKER_OFF).toISOString().slice(0,19)+"Z"; /* broker time */
     var id="t-"+ts.slice(0,10).replace(/-/g,"")+"-"+Math.random().toString(36).slice(2,6);
     var t={id:id,ts:ts,symbol:sym,market:$("fMkt").value,dir:dir,pnl:pnl};
     var e2=num("fEntry"),x2=num("fExit"),sz=num("fSize"),fe=num("fFees"),r=num("fR");
@@ -1445,6 +1450,7 @@
       try{
         var rm=await fetch("meta.json",{cache:"no-store"});
         if(rm.ok){ var mm=await rm.json(); settings=(mm&&mm.settings)||{}; upd=mm&&mm.updated;
+          if(mm&&typeof mm.brokerOffsetMs==="number")BROKER_OFF=mm.brokerOffsetMs;
           if(!savingsLive&&mm&&mm.savings&&typeof mm.savings.sats==="number")setSats(mm.savings.sats); }
       }catch(e){}
       var note=$("offnote"); note.style.display="block";
@@ -1455,8 +1461,8 @@
         var noteLive=function(){
           var extra="";
           if(upd){
-            var ageMin=(Date.now()-(Date.parse(upd)-3*3600e3))/60000;
-            extra=" \u00B7 updated "+String(upd).slice(11,16);
+            var ageMin=(Date.now()-(Date.parse(upd)-BROKER_OFF))/60000;
+            extra=" \u00B7 updated "+timeOf(upd);
             if(ageMin>10){ extra=" \u00B7 data stale "+Math.round(ageMin)+" min"; note.style.color="var(--loss)"; }
             else note.style.color="";
           }
@@ -1492,6 +1498,7 @@
             var r3=await fetch("flows.json",{cache:"no-store"}); if(r3.ok)flows=(await r3.json())||[];
             var r4=await fetch("meta.json",{cache:"no-store"});
             if(r4.ok){ var m4=await r4.json(); if(m4&&m4.updated)upd=m4.updated;
+              if(m4&&typeof m4.brokerOffsetMs==="number")BROKER_OFF=m4.brokerOffsetMs;
               if(!savingsLive&&m4&&m4.savings&&typeof m4.savings.sats==="number")setSats(m4.savings.sats); }
             noteLive();
             render();
