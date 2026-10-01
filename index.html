@@ -629,8 +629,9 @@
   var BROKER_OFF=3*3600e3;
   var pad2=function(n){return (n<10?"0":"")+n};
   var locDate=function(ts){return new Date(Date.parse(ts)-BROKER_OFF)};
-  /* the trading day rolls at 06:00 local, not midnight: a late session stays one day */
-  var dayOf=function(ts){if(!ts)return "";var d=new Date(locDate(ts).getTime()-6*3600e3);return d.getFullYear()+"-"+pad2(d.getMonth()+1)+"-"+pad2(d.getDate())};
+  /* the trading day = the broker day: gold's daily candle closes at broker midnight (NY 17:00),
+     and the broker clock self-adjusts over DST. Times display local, days group by gold's close. */
+  var dayOf=function(ts){return String(ts||"").slice(0,10)};
   var timeOf=function(ts){if(!ts)return "";var d=locDate(ts);return pad2(d.getHours())+":"+pad2(d.getMinutes())};
 
   /* The game = discipline, not volume. Nothing on this page rewards
