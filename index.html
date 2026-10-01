@@ -996,8 +996,10 @@
         d.elSl.style.left=slPct.toFixed(1)+"%"; d.elSl.hidden=false;
         d.elLS.textContent=fmt$(Math.round(floorAmt));
         d.elLS.className="rlab rlsl num "+(floorAmt>=0?"win":"loss");
-        d.elLS.style.left=Math.max(4,Math.min(94,slPct)).toFixed(1)+"%";
-        d.elLS.style.top=(slPct<12)?"-3px":""; /* near the left edge: label above, clear of the entry text */
+        d.elLS.style.left=slPct.toFixed(1)+"%";
+        /* anchor the label to its tick: centered normally, flipped at the edges */
+        d.elLS.style.transform=slPct<6?"none":(slPct>94?"translateX(-100%)":"translateX(-50%)");
+        d.elLS.style.top=(slPct<12)?"-3px":""; /* near the left edge: above the bar, clear of the entry text */
         d.elLS.hidden=false;
       } else { d.elSl.hidden=true; d.elLS.hidden=true; }
       if(hw!=null&&prog!=null&&hw>0.5){
