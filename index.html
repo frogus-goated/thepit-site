@@ -364,6 +364,7 @@
   .orow1 .dir{width:auto;height:auto;background:none;border-radius:0;margin-top:2px;flex:none}
   .orow1 .dir .ic{width:15px;height:15px}
   .orow1 .dir.long{color:var(--win)} .orow1 .dir.short{color:var(--loss)}
+  .orow1 .sym .tpsl{margin-left:9px}
   .orow1 .omain{min-width:0;flex:1}
   .orow1 .pnl{margin-left:auto;text-align:right;flex:none}
   .orow1 .ofloat{font-size:22px;font-weight:600;letter-spacing:-.01em}
@@ -911,12 +912,13 @@
         if(f!=null)rrNow=f/riskO;
         if(perPt&&p.tp!=null&&p.entry!=null)rrTarget=perPt*Math.abs(p.tp-p.entry)/riskO;
       }
+      var liqAmt=null;
       if(p.sl==null){
         var startB2=(typeof settings.startBalance==="number"?settings.startBalance:0);
         var balE=startB2;
         flows.forEach(function(x){ if(String(x.ts)<String(p.ts)) balE+=(x.type==="withdraw"?-(x.amount||0):(x.amount||0)); });
         trades.forEach(function(x){ if(String(x.ts)<String(p.ts)) balE+=(x.pnl||0); });
-        if(balE>0&&perPt)liq=(p.dir==="short")?(p.entry+balE/perPt):(p.entry-balE/perPt);
+        if(balE>0&&perPt){liq=(p.dir==="short")?(p.entry+balE/perPt):(p.entry-balE/perPt);liqAmt=-balE;}
       }
       /* no TP set: the bar tracks progress to the default 3R target instead of hiding */
       var noTp=(p.tp==null);
@@ -981,7 +983,7 @@
       if(f!=null){ d.targF=f; d.decF=0; }
       d.targP=prog!=null?prog:0;
       if(floorAmt!=null){ d.elFloor.textContent="floor "+fmt$(Math.round(floorAmt)); d.elFloor.className="ofloor num "+(floorAmt>=0?"win":"loss"); }
-      else if(liq!=null){ d.elFloor.textContent="no SL \u00B7 liq ~"+Math.round(liq).toLocaleString("en-US"); d.elFloor.className="ofloor num"; }
+      else if(liqAmt!=null){ d.elFloor.textContent="no SL \u00B7 "+fmt$(Math.round(liqAmt))+" at liquidation"; d.elFloor.className="ofloor num loss"; }
       else d.elFloor.textContent="";
       d.elSub.textContent=(rrTxt||"")+(tgt!=null?((rrTxt?" \u00B7 ":"")+fmt$(Math.round(tgt))+(noTp?" at 3R":" at TP")):"");
       d.elLE.textContent=p.entry!=null?("entry "+p.entry):"";
