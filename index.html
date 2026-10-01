@@ -364,6 +364,7 @@
   .obox.ord{border-color:var(--line);background:rgba(255,255,255,.02)}
   .obox .trow{padding:0}
   .pbar{position:relative;height:7px;background:rgba(255,255,255,.07);border-radius:99px}
+  .psl{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--loss);border-radius:1px;display:none}
   .pfill{height:100%;width:0;background:linear-gradient(90deg,#0F3D2C,#1F8A63);border-radius:99px}
   .phigh{position:absolute;top:0;bottom:0;width:0;left:-9px;transition:left 1.2s ease}
   .phigh::before{content:"";position:absolute;left:-3px;top:-2px;border-left:3px solid transparent;border-right:3px solid transparent;border-top:4px solid rgba(94,102,120,.95)}
@@ -910,7 +911,7 @@
         if(prog!=null){
           wrap=document.createElement("div");
           wrap.className="tprog";
-          wrap.innerHTML='<div class="pbar"><div class="pfill"></div><div class="phigh"></div></div>'+
+          wrap.innerHTML='<div class="pbar"><div class="pfill"></div><div class="phigh"></div><div class="psl"></div></div>'+
             '<div class="pmeta num"><span>entry '+p.entry+'</span><span class="omid"></span><span>'+(p.tp!=null?("TP "+p.tp):"3R")+'</span></div>';
           box.appendChild(wrap);
         }
@@ -920,6 +921,7 @@
           elF:row.querySelector(".ofloat"), elM:row.querySelector(".omark"),
           elFill:wrap?wrap.querySelector(".pfill"):null,
           elHigh:wrap?wrap.querySelector(".phigh"):null,
+          elSl:wrap?wrap.querySelector(".psl"):null,
           elMid:wrap?wrap.querySelector(".omid"):null
         };
         d.dispF=f||0; d.dispP=prog!=null?prog:0;
@@ -934,6 +936,14 @@
       if(prog!=null&&d.elFill){
         d.targP=prog;
         if(d.elHigh)d.elHigh.style.left="calc("+Math.min(100,hw).toFixed(1)+"% - 1px)";
+        if(d.elSl){
+          var denomP=(p.tp!=null&&p.entry!=null&&p.tp!==p.entry)?(p.tp-p.entry):null;
+          if(p.sl!=null&&denomP){
+            var slPct=Math.max(0,Math.min(100,(p.sl-p.entry)/denomP*100));
+            d.elSl.style.left="calc("+slPct.toFixed(1)+"% - 1px)";
+            d.elSl.style.display="block";
+          } else d.elSl.style.display="none";
+        }
         if(d.elMid)d.elMid.textContent=prog.toFixed(0)+"% to target"+(hw!=null&&hw>prog+0.5?" \u00B7 high "+hw.toFixed(0)+"%":"")+(rrTxt?" \u00B7 "+rrTxt:"")+(tgt!=null?" \u00B7 "+fmt$(tgt)+(noTp?" at 3R":" at TP"):"");
       }
     });
