@@ -1537,9 +1537,13 @@
         window.addEventListener("focus",function(){refreshNow()});
         window.addEventListener("pageshow",function(ev){if(ev.persisted)refreshNow()});
         window.addEventListener("online",function(){refreshNow()});
+        var lastPoll=0;
         setInterval(async function(){
           if(document.hidden)return;
-          if(Date.now()-sseAt<4000)return;
+          /* poll when the stream is quiet, plus a 10s truth check even when it is healthy,
+             so a dropped frame (like an order filling into a position) can never stick */
+          if(Date.now()-sseAt<4000&&Date.now()-lastPoll<10000)return;
+          lastPoll=Date.now();
           try{
             var r1=await fetch("open.json",{cache:"no-store"}); if(r1.ok)openPos=(await r1.json())||[];
             var r1b=await fetch("orders.json",{cache:"no-store"}); if(r1b.ok)orders=(await r1b.json())||[];
