@@ -988,6 +988,9 @@
       else if(liqAmt!=null){ d.elFloor.textContent="no SL \u00B7 "+fmt$(Math.round(liqAmt))+" at liquidation"; d.elFloor.className="ofloor num loss"; }
       else d.elFloor.textContent="";
       d.elSub.textContent=(rrTxt||"")+(tgt!=null?((rrTxt?" \u00B7 ":"")+fmt$(Math.round(tgt))+(noTp?" at 3R":" at TP")):"");
+      if(rrTarget!=null&&(rrTarget<0.5||rrTarget>15)){
+        d.elSub.innerHTML='<span style="color:var(--loss);font-weight:600">CHECK TP: '+rrTarget.toFixed(1)+'R target</span> \u00B7 '+esc(d.elSub.textContent);
+      }
       d.elLE.textContent=p.entry!=null?("entry "+p.entry):"";
       d.elLT.textContent=noTp?"3R":("TP "+p.tp);
       d.elLN.textContent=p.mark!=null?String(p.mark):"";
@@ -1046,7 +1049,16 @@
       var osegs=["now "+(o.mark!=null?o.mark:"?")];
       if(o.tp!=null)osegs.push("TP "+o.tp);
       if(o.sl!=null)osegs.push("SL "+o.sl);
-      d2.elM.textContent=osegs.join("  \u00B7  ");
+      if(oWarn)d2.elM.innerHTML=oWarn+esc(osegs.join("  \u00B7  "));
+      else d2.elM.textContent=osegs.join("  \u00B7  ");
+      var oWarn="";
+      if(o.tp!=null&&o.price!=null&&o.size>0){
+        var omult=/^XAU/.test(o.symbol||"")?100:(/^(BTC|ETH)/.test(o.symbol||"")?1:null);
+        if(omult){
+          var oR=Math.abs(o.tp-o.price)*omult*o.size/(1000*o.size);
+          if(oR<0.5||oR>15)oWarn='<span style="color:var(--loss);font-weight:600">CHECK TP: '+oR.toFixed(1)+'R</span> \u00B7 ';
+        }
+      }
       if(dist!=null&&o.mark!=null&&o.price!=null){
         var verb=(o.mark>o.price)?"drop":"climb";
         /* move translated to his risk unit: $ per price-dollar per lot (gold 100, btc 1) */
