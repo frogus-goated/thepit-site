@@ -871,7 +871,6 @@
           d.dispP+=(d.targP-d.dispP)*0.14;
           if(Math.abs(d.targP-d.dispP)<0.05)d.dispP=d.targP;
           d.elFill.style.width=d.dispP.toFixed(2)+"%";
-          if(d.elLN)d.elLN.style.left=Math.max(15,Math.min(85,d.dispP)).toFixed(1)+"%";
         }
       }
       if(any||document.getElementById("openCard"))requestAnimationFrame(step);
@@ -972,7 +971,7 @@
             '<div class="rbase"></div><div class="rfill"></div>'+
             '<div class="rhigh" hidden></div><div class="rsl" hidden></div>'+
             '<div class="rlab rlentry num"></div><div class="rlab rlsl num" hidden></div>'+
-            '<div class="rlab rlnow num"></div><div class="rlab rlhigh num" hidden></div>'+
+            '<div class="rlab rlhigh num" hidden></div>'+
             '<div class="rlab rltp num"></div>'+
           '</div>';
         host.appendChild(box);
@@ -980,7 +979,7 @@
           float:f||0,
           elF:box.querySelector(".ofloat"), elFloor:box.querySelector(".ofloor"), elSub:box.querySelector(".osub"),
           elFill:box.querySelector(".rfill"), elHigh:box.querySelector(".rhigh"), elSl:box.querySelector(".rsl"),
-          elLE:box.querySelector(".rlentry"), elLS:box.querySelector(".rlsl"), elLN:box.querySelector(".rlnow"),
+          elLE:box.querySelector(".rlentry"), elLS:box.querySelector(".rlsl"),
           elLH:box.querySelector(".rlhigh"), elLT:box.querySelector(".rltp")
         };
         d.dispF=f||0; d.dispP=prog!=null?prog:0;
@@ -997,15 +996,13 @@
       }
       d.elLE.textContent=p.entry!=null?("entry "+p.entry):"";
       d.elLT.textContent=noTp?"3R":("TP "+p.tp);
-      d.elLN.textContent=p.mark!=null?String(p.mark):"";
       var slPct=p.sl!=null?pctOf(p.sl):null;
       if(slPct!=null&&floorAmt!=null){
         d.elSl.style.left=slPct.toFixed(1)+"%"; d.elSl.hidden=false;
         d.elLS.textContent=fmt$(Math.round(floorAmt));
         d.elLS.className="rlab rlsl num "+(floorAmt>=0?"win":"loss");
-        d.elLS.style.left=slPct.toFixed(1)+"%";
-        /* always above the bar, anchored to its tick, flipped at the edges */
-        d.elLS.style.transform=slPct<6?"translateX(4px)":(slPct>94?"translateX(calc(-100% - 4px))":"translateX(-50%)");
+        d.elLS.style.left=Math.max(7,Math.min(93,slPct)).toFixed(1)+"%";
+        d.elLS.style.transform="translateX(-50%)";
         d.elLS.hidden=false;
       } else { d.elSl.hidden=true; d.elLS.hidden=true; }
       if(hw!=null&&prog!=null&&hw>0.5){
