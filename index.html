@@ -385,7 +385,8 @@
   .rlnow{transform:translateX(-50%);color:#EAF2EC}
   .rlsl{transform:translateX(-50%)}
   .rlsl.win{color:var(--win)} .rlsl.loss{color:var(--loss)}
-  .rlhigh{top:-3px;transform:translateX(-50%);font-size:8px;color:var(--ink-3)}
+  .rlhigh{top:-5px;font-size:8.5px;color:var(--ink-3)}
+  .rlsl{top:-5px}
   .obasket{display:flex;align-items:center;gap:14px;background:rgba(61,224,168,.07);border:1px solid rgba(61,224,168,.25);border-radius:12px;padding:11px 16px;margin-bottom:12px;flex-wrap:wrap}
   .obasket .blbl{font-family:var(--mono);font-size:10px;letter-spacing:.14em;color:var(--ink-3)}
   .obasket .bflt{font-size:17px;font-weight:600}
@@ -1003,17 +1004,19 @@
         d.elLS.textContent=fmt$(Math.round(floorAmt));
         d.elLS.className="rlab rlsl num "+(floorAmt>=0?"win":"loss");
         d.elLS.style.left=slPct.toFixed(1)+"%";
-        /* anchor the label to its tick: centered normally, flipped at the edges */
-        d.elLS.style.transform=slPct<6?"none":(slPct>94?"translateX(-100%)":"translateX(-50%)");
-        d.elLS.style.top=(slPct<12)?"-3px":""; /* near the left edge: above the bar, clear of the entry text */
+        /* always above the bar, anchored to its tick, flipped at the edges */
+        d.elLS.style.transform=slPct<6?"translateX(4px)":(slPct>94?"translateX(calc(-100% - 4px))":"translateX(-50%)");
         d.elLS.hidden=false;
       } else { d.elSl.hidden=true; d.elLS.hidden=true; }
       if(hw!=null&&prog!=null&&hw>0.5){
         d.elHigh.style.left=Math.min(100,hw).toFixed(1)+"%"; d.elHigh.hidden=false;
       } else d.elHigh.hidden=true;
-      if(hw!=null&&prog!=null&&hw>prog+1){
-        d.elLH.textContent="high "+hw.toFixed(0)+"%";
-        d.elLH.style.left=Math.max(6,Math.min(94,hw)).toFixed(1)+"%"; d.elLH.hidden=false;
+      if(hw!=null&&prog!=null&&hw>prog+1&&tgt!=null){
+        d.elLH.textContent="high "+fmt$(Math.round(tgt*hw/100));
+        d.elLH.style.left=Math.min(100,hw).toFixed(1)+"%";
+        /* sits beside the arrow, never on it */
+        d.elLH.style.transform=hw>85?"translateX(calc(-100% - 7px))":"translateX(7px)";
+        d.elLH.hidden=false;
       } else d.elLH.hidden=true;
       if(f!=null){bkF+=f}
       if(prog!=null&&riskO){bkProgW+=prog*riskO;bkRisk+=riskO}
