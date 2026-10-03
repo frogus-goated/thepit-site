@@ -871,7 +871,7 @@
           d.dispP+=(d.targP-d.dispP)*0.14;
           if(Math.abs(d.targP-d.dispP)<0.05)d.dispP=d.targP;
           d.elFill.style.width=d.dispP.toFixed(2)+"%";
-          if(d.elLN)d.elLN.style.left=Math.max(6,Math.min(94,d.dispP)).toFixed(1)+"%";
+          if(d.elLN)d.elLN.style.left=Math.max(15,Math.min(85,d.dispP)).toFixed(1)+"%";
         }
       }
       if(any||document.getElementById("openCard"))requestAnimationFrame(step);
