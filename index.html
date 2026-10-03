@@ -902,25 +902,28 @@
         prog=(p.dir==="short")?((p.entry-p.mark)/(p.entry-p.tp)*100):((p.mark-p.entry)/(p.tp-p.entry)*100);
         prog=Math.max(0,Math.min(100,prog));
       }
-      var tgt=(f!=null&&p.mark!=null&&p.entry!=null&&p.mark!==p.entry&&p.tp!=null)?f*(p.tp-p.entry)/(p.mark-p.entry):null;
-      /* RR: risk = SL distance when set, else liquidation (balance at entry is the risk) */
-      var perPt=(f!=null&&p.mark!=null&&p.entry!=null&&p.mark!==p.entry)?Math.abs(f/(p.mark-p.entry)):null;
-      /* R is always the account risk unit (riskPerLot x lots), never the current SL
-         distance: moving SL into profit must not inflate R. Owner's rule 2026-10-01. */
-      var rrTarget=null, rrNow=null, liq=null;
+      /* per-point value from the symbol itself (gold $100/lot, crypto $1/lot), so RR
+         never explodes from noise when price sits on the entry */
+      var symMult=/^XAU/.test(p.symbol||"")?100:(/^(BTC|ETH)/.test(p.symbol||"")?1:null);
+      var perPt=(symMult&&p.size>0)?symMult*p.size:((f!=null&&p.mark!=null&&p.entry!=null&&p.mark!==p.entry)?Math.abs(f/(p.mark-p.entry)):null);
+      var tgt=(perPt&&p.tp!=null&&p.entry!=null)?perPt*((p.dir==="short")?(p.entry-p.tp):(p.tp-p.entry)):null;
+      /* R unit: gold = his 1k per lot rule; other symbols = the real account risk
+         (balance behind the trade). SL moves never change R. Owner's rules. */
+      var startB2=(typeof settings.startBalance==="number"?settings.startBalance:0);
+      var balE=startB2;
+      flows.forEach(function(x){ if(String(x.ts)<String(p.ts)) balE+=(x.type==="withdraw"?-(x.amount||0):(x.amount||0)); });
+      trades.forEach(function(x){ if(String(x.ts)<String(p.ts)) balE+=(x.pnl||0); });
       var rl2=(typeof settings.riskPerLot==="number"&&settings.riskPerLot>0)?settings.riskPerLot:1000;
-      var riskO=(p.size>0)?rl2*p.size:null;
+      var isGold=/^XAU/.test(p.symbol||"");
+      var riskO=isGold?((p.size>0)?rl2*p.size:null):(balE>0?balE:null);
+      var rrTarget=null, rrNow=null, liq=null, liqAmt=null;
       if(riskO){
         if(f!=null)rrNow=f/riskO;
         if(perPt&&p.tp!=null&&p.entry!=null)rrTarget=perPt*Math.abs(p.tp-p.entry)/riskO;
       }
-      var liqAmt=null;
-      if(p.sl==null){
-        var startB2=(typeof settings.startBalance==="number"?settings.startBalance:0);
-        var balE=startB2;
-        flows.forEach(function(x){ if(String(x.ts)<String(p.ts)) balE+=(x.type==="withdraw"?-(x.amount||0):(x.amount||0)); });
-        trades.forEach(function(x){ if(String(x.ts)<String(p.ts)) balE+=(x.pnl||0); });
-        if(balE>0&&perPt){liq=(p.dir==="short")?(p.entry+balE/perPt):(p.entry-balE/perPt);liqAmt=-balE;}
+      if(p.sl==null&&balE>0&&perPt){
+        liq=(p.dir==="short")?(p.entry+balE/perPt):(p.entry-balE/perPt);
+        liqAmt=-balE;
       }
       /* no TP set: the bar tracks progress to the default 3R target instead of hiding */
       var noTp=(p.tp==null);
