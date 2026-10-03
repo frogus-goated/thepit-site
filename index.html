@@ -1008,7 +1008,7 @@
       if(hw!=null&&prog!=null&&hw>0.5){
         d.elHigh.style.left=Math.min(100,hw).toFixed(1)+"%"; d.elHigh.hidden=false;
       } else d.elHigh.hidden=true;
-      if(hw!=null&&prog!=null&&hw>prog+1&&tgt!=null){
+      if(hw!=null&&prog!=null&&hw>0.5&&tgt!=null){
         d.elLH.textContent=fmt$(Math.round(tgt*hw/100));
         d.elLH.style.left=Math.min(100,hw).toFixed(1)+"%";
         d.elLH.style.transform="translateX(-50%)";
