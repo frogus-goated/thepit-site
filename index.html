@@ -1143,7 +1143,7 @@
     var seg=$("rangeSeg");
     if(seg)seg.querySelectorAll("button").forEach(function(b){b.setAttribute("aria-pressed",b.getAttribute("data-r")===statRange?"true":"false")});
     var sb=$("sumBal");
-    var newTxt=s.net===0?"$0":fmt$(s.net);
+    var newTxt=s.net===0?"$0":fmt$(Math.round(s.net));
     if(prevNet!=null&&prevNet!==s.net&&!window.matchMedia("(prefers-reduced-motion: reduce)").matches){
       (function(from,to){
         var t0=performance.now(),dur=1400;
