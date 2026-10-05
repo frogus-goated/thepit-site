@@ -470,7 +470,12 @@
       <section class="card" id="sumCard">
         <svg id="heroSpark" viewBox="0 0 100 32" preserveAspectRatio="none" aria-hidden="true"></svg>
         <div id="heroL">
-          <div class="lbl">Profit, all time</div>
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+            <span class="lbl" id="heroLbl">Profit, all time</span>
+            <span class="mini-seg" id="rangeSeg" style="margin-left:auto">
+              <button type="button" data-r="1">1D</button><button type="button" data-r="7">7D</button><button type="button" data-r="30">30D</button><button type="button" data-r="all">ALL</button>
+            </span>
+          </div>
           <div id="sumBal" class="num">$0</div>
         </div>
         <div id="capgrid">
@@ -634,7 +639,7 @@
   var db=null, unsubT=null, unsubS=null, unsubF=null, unsubO=null;
   var trades=[], flows=[], settings={}, openPos=[], orders=[];
   var dir="long", flowType="deposit", detailId=null, detailKind="trade", deleteArmed=false;
-  var dailyRange=15, logLimit=25, countsDone=false, prevNet=null, seenTradeIds=null, openDays={};
+  var statRange="all", dailyRange=15, logLimit=25, countsDone=false, prevNet=null, seenTradeIds=null, openDays={};
 
   /* count the key figures up from 0 on first load */
   function animateNums(){
@@ -676,13 +681,22 @@
   function derive(){
     var list=trades.slice().sort(function(a,b){return String(a.ts).localeCompare(String(b.ts))});
     var fl=flows.slice().sort(function(a,b){return String(a.ts).localeCompare(String(b.ts))});
+    /* stat range: stats, tiles and charts follow it; ledger chips stay all time */
+    var cut=null;
+    if(statRange!=="all"){
+      var nb=new Date(Date.now()+BROKER_OFF); nb.setUTCDate(nb.getUTCDate()-(parseInt(statRange,10)-1));
+      cut=nb.toISOString().slice(0,10);
+    }
+    var inR=function(ts){return !cut||dayOf(ts)>=cut};
+    var listF=cut?list.filter(function(t){return inR(t.ts)}):list;
     var byDay={}, dayKeys=[];
     var ensure=function(d){ if(!byDay[d]){byDay[d]={day:d,pnl:0,n:0,dep:0,wit:0};dayKeys.push(d)} return byDay[d]; };
-    list.forEach(function(t){
+    listF.forEach(function(t){
       var d=dayOf(t.ts); if(!d) return;
       var o=ensure(d); o.pnl+=(t.pnl||0); o.n++;
     });
     fl.forEach(function(f){
+      if(!inR(f.ts))return;
       var d=dayOf(f.ts); if(!d) return;
       var o=ensure(d);
       if(f.type==="withdraw") o.wit+=(f.amount||0); else o.dep+=(f.amount||0);
@@ -705,10 +719,12 @@
       else if(e.k==="s"){ preBal[e.o.id]=runBal; }
       else { runBal+=(e.o.pnl||0); }
     });
-    var s={n:list.length,net:0,wins:0,losses:0,gw:0,gl:0,rSum:0,rN:0,maxR:0,maxPnl:-Infinity,bestSym:"",wpl:0,wplN:0,lpl:0,lplN:0,apl:0,aplN:0,
+    var s={n:listF.length,net:0,wins:0,losses:0,gw:0,gl:0,rSum:0,rN:0,maxR:0,maxPnl:-Infinity,bestSym:"",wpl:0,wplN:0,lpl:0,lplN:0,apl:0,aplN:0,
            tagged:0,winStreak:0,maxWinStreak:0,dayStreak:0,greenDays:0,greenWeek:false,comeback:false};
     var run=0;
-    list.forEach(function(t){
+    s.fullNet=0;
+    list.forEach(function(t){s.fullNet+=(t.pnl||0)});
+    listF.forEach(function(t){
       var p=t.pnl||0; s.net+=p;
       if(p>0){s.wins++;s.gw+=p;run++;if(run>s.maxWinStreak)s.maxWinStreak=run}
       else if(p<0){s.losses++;s.gl+=-p;run=0}
@@ -801,7 +817,7 @@
     var aw=rw.length?rw.reduce(function(a,t){return a+t.pnl},0)/rw.length:0;
     var al=rl.length?-rl.reduce(function(a,t){return a+t.pnl},0)/rl.length:0;
     var checks=[];
-    var pct=s.net>0?Math.round(Math.min(1,s.wit/s.net)*100):0;
+    var pct=(s.fullNet||0)>0?Math.round(Math.min(1,s.wit/s.fullNet)*100):0;
     var bankAt=(typeof settings.bankAt==="number"&&settings.bankAt>0)?settings.bankAt:2500;
     var over=recent.filter(function(t){return (s.preBal[t.id]||0)>=bankAt}).length;
     var bankFmt=bankAt>=1000?("$"+(bankAt/1000)+"k"):("$"+bankAt);
@@ -866,6 +882,17 @@
     return s+"$"+Math.abs(v).toLocaleString("en-US",{minimumFractionDigits:dec,maximumFractionDigits:dec});
   }
   function hwKey(t){return "pit-hw-"+t}
+  try{ var sr=localStorage.getItem("tp-range"); if(sr==="1"||sr==="7"||sr==="30"||sr==="all")statRange=sr; }catch(e){}
+  (function(){
+    var seg=$("rangeSeg");
+    if(seg)seg.querySelectorAll("button").forEach(function(b){
+      b.addEventListener("click",function(){
+        statRange=b.getAttribute("data-r");
+        try{localStorage.setItem("tp-range",statRange)}catch(e){}
+        render();
+      });
+    });
+  })();
   var openAnimOn=false;
   function startOpenAnim(){
     if(openAnimOn)return; openAnimOn=true;
@@ -1105,12 +1132,16 @@
     var start=(typeof settings.startBalance==="number"?settings.startBalance:0);
     var own=start+s.dep-s.rei;
     $("cDep").textContent=fmtBal(own);
-    var balNow0=start+s.dep-s.wit+s.net;
+    var balNow0=start+s.dep-s.wit+(s.fullNet!=null?s.fullNet:s.net);
     var balEl=$("cProf");
     balEl.textContent=fmtBal(balNow0); balEl.className="cv num "+(balNow0<0?"loss":"");
     $("cWit").textContent=fmtBal(s.wit);
     var re=$("cRei"); re.textContent=fmtBal(s.rei);
     re.className="cv num "+(s.rei>0?"rei":"");
+    var hl=$("heroLbl");
+    if(hl)hl.textContent="Profit, "+(statRange==="1"?"today":statRange==="7"?"last 7 days":statRange==="30"?"last 30 days":"all time");
+    var seg=$("rangeSeg");
+    if(seg)seg.querySelectorAll("button").forEach(function(b){b.setAttribute("aria-pressed",b.getAttribute("data-r")===statRange?"true":"false")});
     var sb=$("sumBal");
     var newTxt=s.net===0?"$0":fmt$(s.net);
     if(prevNet!=null&&prevNet!==s.net&&!window.matchMedia("(prefers-reduced-motion: reduce)").matches){
