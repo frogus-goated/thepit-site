@@ -131,6 +131,7 @@
   .tpnl.fwit{color:var(--blu)} .tpnl.frei{color:#F59E4B}
   #cWit{color:var(--blu)}
   #cRei.rei{color:#F59E4B}
+  #tiltStop{grid-column:1/-1;background:rgba(255,122,92,.08);border:1px solid rgba(255,122,92,.45);border-radius:14px;padding:14px 18px;font-family:var(--mono);font-size:12.5px;letter-spacing:.04em;color:var(--loss);font-weight:600;text-align:center}
   #openCard h2{font-size:13px}
   #openSum{margin-left:10px;font-weight:600;font-size:13px;letter-spacing:.12em;text-transform:uppercase}
   #openSum.win{color:var(--win)} #openSum.loss{color:var(--loss)}
@@ -505,6 +506,7 @@
       </section>
     </div>
 
+    <section id="tiltStop" hidden></section>
     <section class="card" id="openCard" hidden>
       <h2>Open right now <span class="num" id="openSum"></span><span class="num" id="openAsOf"></span></h2>
       <div id="olist"></div>
@@ -769,6 +771,20 @@
       }
     }
     if(trades.length){ var m2={}; trades.forEach(function(t){m2[t.id]=1}); seenTradeIds=m2; }
+    /* his rule 2026-10-05: a red day means done for the day */
+    var tEl=$("tiltStop");
+    if(tEl){
+      var todayBk=null;
+      if(d.days.length){
+        var lastDay=d.days[d.days.length-1].day;
+        var nowBk=new Date(Date.now()+BROKER_OFF).toISOString().slice(0,10);
+        if(lastDay===nowBk&&d.days[d.days.length-1].n>0)todayBk=d.days[d.days.length-1].pnl;
+      }
+      if(todayBk!=null&&todayBk<0){
+        tEl.hidden=false;
+        tEl.textContent="DAY IS RED ("+fmt$(Math.round(todayBk))+"). YOUR RULE: STOP TRADING FOR TODAY. Tomorrow starts fresh.";
+      } else tEl.hidden=true;
+    }
     renderCapital(d); renderRules(d); renderEquity(d); renderDaily(d); renderList(d); renderOpen();
     if(!countsDone&&(trades.length||flows.length)){countsDone=true;animateNums()}
   }
